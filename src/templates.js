@@ -104,7 +104,7 @@ const brand = `<div class="brand"><img src="${A('icon.png')}"><div><b>Crypto <sp
 const doc = (body, extra = '') => `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}${extra}</style></head><body>${body}</body></html>`;
 
 // ---------- DAILY ----------
-const COIN = { BTC: ['#F7931A', '₿', 'Биткоин'], ETH: ['#8EA2FF', 'Ξ', 'Эфир'], SOL: ['linear-gradient(135deg,#9945FF,#14F195)', 'S', 'Solana'], BNB: ['#F3BA2F', 'B', 'BNB'], XRP: ['#E6E6E6', 'X', 'XRP'] };
+const COIN = { BTC: ['#F7931A', '₿', 'Bitcoin'], ETH: ['#8EA2FF', 'Ξ', 'Ethereum'], SOL: ['linear-gradient(135deg,#9945FF,#14F195)', 'S', 'Solana'], BNB: ['#F3BA2F', 'B', 'BNB'], XRP: ['#E6E6E6', 'X', 'XRP'] };
 function daily(d, slot = 'УТРО') {
   const k = kyivParts();
   const ev = d.events.length ? d.events.map(e => `<div class="e"><div class="t">${e.time}</div><div>${esc(e.title)}</div><div class="imp ${e.high ? 'h' : ''}">● ${e.high ? 'ВАЖНО' : 'СРЕДНЕ'}</div></div>`).join('')
@@ -150,7 +150,7 @@ function etf(d) {
   const funds = d.perFund.map(f => `<span class="${f.m >= 0 ? 'up' : 'dn'}">${f.fund} ${signedM(f.m)}</span>`).join('<i>·</i>');
   return doc(`<div id="card" class="page wide">
  <div class="hdr">${brand}<div class="leg"><span><i style="background:var(--gr)"></i>Приток</span><span><i style="background:var(--rd)"></i>Отток</span></div></div>
- <div class="ttl"><div><h1>ПОТОКИ В БИТКОИН-ETF</h1><p>Чистый приток и отток за 5 торговых дней, млн $</p></div>
+ <div class="ttl"><div><h1>ПОТОКИ В BITCOIN-ETF</h1><p>Чистый приток и отток за 5 торговых дней, млн $</p></div>
   <div class="sum"><div class="card"><div class="lbl">За ${dateRu(d.date)}</div><b class="${d.last >= 0 ? 'up' : 'dn'}">${signedM(d.last)} млн $</b></div><div class="card"><div class="lbl">За 5 дней</div><b class="${d.week >= 0 ? 'up' : 'dn'}">${signedM(d.week)} млн $</b></div></div></div>
  ${vbars(items, 1184, 420)}
  <div class="funds">${funds ? 'По фондам за ' + dateRu(d.date) + ': ' + funds : ''}</div>
@@ -190,8 +190,8 @@ function weekly(d) {
   return doc(`<div id="card" class="page" style="width:1080px;padding:48px">
  <div class="hdr">${brand}<div class="pill"><b>ИТОГИ НЕДЕЛИ</b><span>${k.day} ${MON[k.mon]} ${k.year}</span></div></div>
  <div class="kp">
-  <div class="card k"><div class="lbl">Биткоин за неделю</div><div class="v">${price(d.btc.close)}</div>${chg(d.btc.chg)}<div class="rng">диапазон ${price(d.btc.lo)} — ${price(d.btc.hi)}</div></div>
-  <div class="card k"><div class="lbl">Эфир за неделю</div><div class="v">${d.eth.price ? price(d.eth.price) : ''}</div>${chg(d.eth.chg)}</div>
+  <div class="card k"><div class="lbl">Bitcoin за неделю</div><div class="v">${price(d.btc.close)}</div>${chg(d.btc.chg)}<div class="rng">диапазон ${price(d.btc.lo)} — ${price(d.btc.hi)}</div></div>
+  <div class="card k"><div class="lbl">Ethereum за неделю</div><div class="v">${d.eth.price ? price(d.eth.price) : ''}</div>${chg(d.eth.chg)}</div>
   ${st}
  </div>
  <div class="card blk"><h3><i style="background:var(--gr)"></i>Лидеры роста · топ-100</h3>${hbars(g, 920, 54)}</div>
