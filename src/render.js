@@ -29,7 +29,7 @@ const which = args[0] === 'all' || !args[0] ? ['daily', 'etf', 'deriv', 'weekly'
       fs.unlinkSync(tmp);
       fs.writeFileSync(path.join(OUT, `${kind}.json`), JSON.stringify({ kind, generatedAt: new Date().toISOString(), data: d }, null, 1));
       console.log('ok', kind);
-    } catch (e) { failed++; console.error('FAIL', kind, e.message); }
+    } catch (e) { failed++; console.error('FAIL', kind, e && (e.stack || e.message || e)); }
   }
   await browser.close();
   process.exit(failed === which.length ? 1 : 0);

@@ -1,12 +1,19 @@
 // Data fetchers. All sources are free public APIs (no keys).
 const UA = { 'User-Agent': 'crypto-filin-cards/1.0 (+https://t.me/Filin1Radar)', Accept: 'application/json' };
 
-async function getJSON(url, tries = 3) {
+let cgChain = Promise.resolve();
+const sleep = ms => new Promise(s => setTimeout(s, ms));
+// CoinGecko free tier: serialize calls with a gap to stay under the rate limit
+function cgQueue(fn) { const p = cgChain.then(fn); cgChain = p.catch(() => {}).then(() => sleep(2500)); return p; }
+function getJSON(url, tries = 4) {
+  return url.includes('coingecko.com') ? cgQueue(() => rawJSON(url, tries)) : rawJSON(url, tries);
+}
+async function rawJSON(url, tries) {
   let last;
   for (let i = 0; i < tries; i++) {
     try {
       const r = await fetch(url, { headers: UA });
-      if (r.status === 429) { await new Promise(s => setTimeout(s, 15000)); continue; }
+      if (r.status === 429) { last = new Error('429 rate limit ' + url); await sleep(20000 * (i + 1)); continue; }
       if (!r.ok) throw new Error(`${r.status} ${url}`);
       return await r.json();
     } catch (e) { last = e; await new Promise(s => setTimeout(s, 3000)); }
