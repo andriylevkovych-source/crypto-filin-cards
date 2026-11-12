@@ -35,11 +35,14 @@ async function daily() {
   ]);
   const g = glob.data;
   // 7d market-cap & dominance curves approximated from top-100 sparklines (price * circulating supply)
-  const n = Math.min(...top100.filter(c => c.sparkline_in_7d?.price?.length).map(c => c.sparkline_in_7d.price.length));
+  // use only coins with a complete 7d sparkline so new listings don't create fake jumps
+  const full = top100.filter(c => (c.sparkline_in_7d?.price?.length || 0) >= 150 && c.sparkline_in_7d.price.every(v => v > 0) && c.circulating_supply);
+  const n = Math.min(...full.map(c => c.sparkline_in_7d.price.length));
   const capCurve = Array.from({ length: n }, (_, i) =>
-    top100.reduce((s, c) => s + (c.sparkline_in_7d?.price?.[i] || 0) * (c.circulating_supply || 0), 0));
+    full.reduce((s, c) => s + c.sparkline_in_7d.price[c.sparkline_in_7d.price.length - n + i] * c.circulating_supply, 0));
   const btc = top100.find(c => c.id === 'bitcoin');
-  const domCurve = capCurve.map((v, i) => btc.sparkline_in_7d.price[i] * btc.circulating_supply / v * 100);
+  const bp = btc.sparkline_in_7d.price.slice(-n);
+  const domCurve = capCurve.map((v, i) => bp[i] * btc.circulating_supply / v * 100);
   const domNow = g.market_cap_percentage.btc;
   const domChg24 = domCurve[n - 1] - domCurve[Math.max(0, n - 25)];
   const order = Object.fromEntries(TOP.map((id, i) => [id, i]));
@@ -124,7 +127,7 @@ async function weekly() {
     getJSON('https://stablecoins.llama.fi/stablecoincharts/all').catch(() => null),
     getJSON(`${CG}/coins/bitcoin/market_chart?vs_currency=usd&days=7&interval=daily`),
   ]);
-  const stables = /usd|dai|tusd|fdusd|pyusd|usde|eurc|xaut|paxg/i;
+  const stables = /usd|dai|tusd|fdusd|pyusd|usde|eurc|xaut|paxg|_|^w?steth$|^weth$|^wbtc$|^cbbtc$|bsc-usd|buidl|ousg|usyc/i;
   const pool = mk.filter(c => !stables.test(c.symbol) && c.price_change_percentage_7d_in_currency != null);
   const by = [...pool].sort((a, b) => b.price_change_percentage_7d_in_currency - a.price_change_percentage_7d_in_currency);
   let st = null;

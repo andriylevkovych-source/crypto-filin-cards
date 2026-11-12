@@ -7,7 +7,7 @@ const grp = (n, d = 0) => n.toLocaleString('ru-RU', { minimumFractionDigits: d, 
 function price(v) { return '$' + (v >= 100 ? grp(Math.round(v)) : v >= 10 ? grp(v, 1) : grp(v, 2)); }
 function big(v) { return v >= 1e12 ? `$${grp(v / 1e12, 2)} трлн` : v >= 1e9 ? `$${grp(v / 1e9, 1)} млрд` : `$${grp(v / 1e6, 0)} млн`; }
 function pct(v, d = 1) { return grp(Math.abs(v), d) + '%'; }
-function chg(v, suffix = '%', d = 1) { const up = v >= 0; return `<span class="chg ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${grp(Math.abs(v), d)}${suffix}</span>`; }
+function chg(v, suffix = '%', d = 1) { if (suffix === '%' && Math.abs(v) < 0.1 && v !== 0) d = 2; const up = v >= 0; return `<span class="chg ${up ? 'up' : 'dn'}">${up ? '▲' : '▼'} ${grp(Math.abs(v), d)}${suffix}</span>`; }
 function signedM(v) { return (v >= 0 ? '+' : '−') + grp(Math.abs(v), Math.abs(v) < 10 ? 1 : 0); }
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const DOW = ['ВОСКРЕСЕНЬЕ', 'ПОНЕДЕЛЬНИК', 'ВТОРНИК', 'СРЕДА', 'ЧЕТВЕРГ', 'ПЯТНИЦА', 'СУББОТА'];

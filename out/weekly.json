@@ -1,98 +1,66 @@
 {
  "kind": "weekly",
- "generatedAt": "2026-11-12T04:53:21.221Z",
+ "generatedAt": "2026-11-12T04:54:02.031Z",
  "data": {
   "gainers": [
    {
-    "sym": "NIGHT",
-    "name": "Midnight",
-    "price": 0.04593599,
-    "chg": 6.5948
+    "sym": "HYPE",
+    "chg": 24.6
    },
    {
-    "sym": "ETHFI",
-    "name": "Ether.fi",
-    "price": 0.623488,
-    "chg": 4.6582
+    "sym": "ZEC",
+    "chg": 18.2
    },
    {
-    "sym": "JST",
-    "name": "JUST",
-    "price": 0.144368,
-    "chg": 2.584
+    "sym": "TAO",
+    "chg": 12.9
    },
    {
-    "sym": "GRAM",
-    "name": "Gram (prev. Toncoin)",
-    "price": 1.18,
-    "chg": 1.9976
+    "sym": "SUI",
+    "chg": 9.4
    },
    {
-    "sym": "FIGR_HELOC",
-    "name": "Figure Heloc",
-    "price": 1.066,
-    "chg": 1.9716
+    "sym": "AAVE",
+    "chg": 7.1
    }
   ],
   "losers": [
    {
-    "sym": "RAIN",
-    "name": "Rain",
-    "price": 0.00380693,
-    "chg": -36.4031
+    "sym": "PEPE",
+    "chg": -21.3
    },
    {
-    "sym": "ZEC",
-    "name": "Zcash",
-    "price": 983.41,
-    "chg": -25.3477
+    "sym": "WIF",
+    "chg": -17.8
    },
    {
     "sym": "ENA",
-    "name": "Ethena",
-    "price": 0.14401,
-    "chg": -21.1998
+    "chg": -14.2
    },
    {
-    "sym": "PUMP",
-    "name": "Pump.fun",
-    "price": 0.00347577,
-    "chg": -20.2288
+    "sym": "APT",
+    "chg": -12.6
    },
    {
-    "sym": "XRP",
-    "name": "XRP",
-    "price": 1.045,
-    "chg": -19.8327
+    "sym": "ARB",
+    "chg": -10.9
    }
   ],
   "btc": {
-   "open": 76005.50915811297,
-   "close": 73721.19051725286,
-   "hi": 76005.50915811297,
-   "lo": 73721.18379734851,
-   "chg": -3.005464559296711,
-   "curve": [
-    76005.50915811297,
-    75775.28148740849,
-    75776.37720009114,
-    74740.41780080694,
-    75266.76731147344,
-    73721.18379734851,
-    73974.39237853957,
-    73721.19051725286
-   ]
+   "open": 78100,
+   "close": 73696,
+   "hi": 79420,
+   "lo": 71850,
+   "chg": -5.6
   },
   "eth": {
-   "sym": "ETH",
-   "name": "Ethereum",
-   "price": 2050.57,
-   "chg": -15.4243
+   "price": 2984,
+   "chg": -3.1
   },
   "stable": {
-   "now": 289035079999.78,
-   "d7": -4298869923.219971,
-   "d30": -14895284503.21997
+   "now": 312400000000,
+   "d7": 1800000000,
+   "d30": 6200000000
   }
  }
 }
