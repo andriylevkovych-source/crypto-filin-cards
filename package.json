@@ -1,0 +1,8 @@
+{
+  "name": "crypto-filin-cards",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Branded analytics images for the Crypto Filin Telegram channel",
+  "scripts": { "render": "node src/render.js", "mock": "node src/render.js all --mock" },
+  "dependencies": { "playwright": "1.48.2" }
+}

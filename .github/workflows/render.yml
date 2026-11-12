@@ -1,0 +1,46 @@
+name: render-cards
+on:
+  schedule:
+    - cron: '20 6 * * *'     # 08:20 Kyiv  -> daily market card (posted ~09:00)
+    - cron: '40 5 * * 2-6'   # 07:40 Kyiv  -> BTC ETF flows (previous US session)
+    - cron: '30 10 * * *'    # 12:30 Kyiv  -> open interest & funding
+    - cron: '0 15 * * 0'     # 17:00 Kyiv Sunday -> weekly recap
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 'daily | etf | deriv | weekly | all'
+        default: 'all'
+      slot:
+        description: 'Daily card label (УТРО / ВЕЧЕР)'
+        default: 'УТРО'
+permissions:
+  contents: write
+concurrency: { group: render, cancel-in-progress: false }
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Pick card
+        id: pick
+        run: |
+          case "${{ github.event.schedule }}" in
+            '20 6 * * *')   echo "kind=daily"  >> $GITHUB_OUTPUT ;;
+            '40 5 * * 2-6') echo "kind=etf"    >> $GITHUB_OUTPUT ;;
+            '30 10 * * *')  echo "kind=deriv"  >> $GITHUB_OUTPUT ;;
+            '0 15 * * 0')   echo "kind=weekly" >> $GITHUB_OUTPUT ;;
+            *)              echo "kind=${{ inputs.kind || 'all' }}" >> $GITHUB_OUTPUT ;;
+          esac
+      - run: node src/render.js ${{ steps.pick.outputs.kind }} --slot "${{ inputs.slot || 'УТРО' }}"
+      - name: Commit images
+        run: |
+          git config user.name "crypto-filin-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add out/*.png out/*.json
+          git commit -m "render ${{ steps.pick.outputs.kind }} $(date -u +%FT%TZ)" || echo "nothing to commit"
+          git pull --rebase && git push
