@@ -36,7 +36,7 @@ async function daily() {
   const g = glob.data;
   // 7d market-cap & dominance curves approximated from top-100 sparklines (price * circulating supply)
   // use only coins with a complete 7d sparkline so new listings don't create fake jumps
-  const full = top100.filter(c => (c.sparkline_in_7d?.price?.length || 0) >= 150 && c.sparkline_in_7d.price.every(v => v > 0) && c.circulating_supply);
+  const full = top100.slice(0, 30).filter(c => (c.sparkline_in_7d?.price?.length || 0) >= 150 && c.sparkline_in_7d.price.every(v => v > 0) && c.circulating_supply && !/usd|dai/i.test(c.symbol));
   const n = Math.min(...full.map(c => c.sparkline_in_7d.price.length));
   const capCurve = Array.from({ length: n }, (_, i) =>
     full.reduce((s, c) => s + c.sparkline_in_7d.price[c.sparkline_in_7d.price.length - n + i] * c.circulating_supply, 0));
