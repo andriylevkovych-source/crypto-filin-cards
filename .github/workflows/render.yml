@@ -2,6 +2,7 @@ name: render-cards
 on:
   schedule:
     - cron: '45 5 * * *'     # 07:45 Kyiv  -> daily market card for the 09:00 morning digest
+    - cron: '10 19 * * *'    # 21:10 Kyiv  -> evening market card for the 22:00 evening digest
     - cron: '40 5 * * 2-6'   # 07:40 Kyiv  -> BTC ETF flows (previous US session)
     - cron: '30 10 * * *'    # 12:30 Kyiv  -> open interest & funding
     - cron: '0 15 * * 0'     # 17:00 Kyiv Sunday -> weekly recap
@@ -30,13 +31,14 @@ jobs:
         id: pick
         run: |
           case "${{ github.event.schedule }}" in
-            '45 5 * * *')   echo "kind=daily"  >> $GITHUB_OUTPUT ;;
+            '45 5 * * *')   echo "kind=daily"  >> $GITHUB_OUTPUT; echo "slot=УТРО"  >> $GITHUB_OUTPUT ;;
+            '10 19 * * *')  echo "kind=daily"  >> $GITHUB_OUTPUT; echo "slot=ВЕЧЕР" >> $GITHUB_OUTPUT ;;
             '40 5 * * 2-6') echo "kind=etf"    >> $GITHUB_OUTPUT ;;
             '30 10 * * *')  echo "kind=deriv"  >> $GITHUB_OUTPUT ;;
             '0 15 * * 0')   echo "kind=weekly" >> $GITHUB_OUTPUT ;;
-            *)              echo "kind=${{ inputs.kind || 'all' }}" >> $GITHUB_OUTPUT ;;
+            *)              echo "kind=${{ inputs.kind || 'all' }}" >> $GITHUB_OUTPUT; echo "slot=${{ inputs.slot || 'УТРО' }}" >> $GITHUB_OUTPUT ;;
           esac
-      - run: node src/render.js ${{ steps.pick.outputs.kind }} --slot "${{ inputs.slot || 'УТРО' }}"
+      - run: node src/render.js ${{ steps.pick.outputs.kind }} --slot "${{ steps.pick.outputs.slot || 'УТРО' }}"
       - name: Commit images
         run: |
           git config user.name "crypto-filin-bot"

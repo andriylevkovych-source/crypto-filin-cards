@@ -108,7 +108,7 @@ const COIN = { BTC: ['#F7931A', '₿', 'Bitcoin'], ETH: ['#8EA2FF', 'Ξ', 'Ether
 function daily(d, slot = 'УТРО') {
   const k = kyivParts();
   const ev = d.events.length ? d.events.map(e => `<div class="e"><div class="t">${e.time}</div><div>${esc(e.title)}</div><div class="imp ${e.high ? 'h' : ''}">● ${e.high ? 'ВАЖНО' : 'СРЕДНЕ'}</div></div>`).join('')
-    : `<div class="e"><div class="t">—</div><div style="color:var(--muted)">Важной макростатистики США сегодня нет</div><div></div></div>`;
+    : `<div class="e"><div class="t">—</div><div style="color:var(--muted)">Важной макростатистики США ${d.eventsTomorrow ? 'завтра' : 'сегодня'} нет</div><div></div></div>`;
   const rows = d.coins.map((c, i) => { const [bg, g, name] = COIN[c.sym] || ['#888', c.sym[0], c.sym]; return `<div class="row"><div class="coin" style="background:${bg}">${g}</div><div class="n"><b>${name}</b><small>${c.sym}</small></div><div class="p">${price(c.price)}</div><div>${chg(c.chg)}</div>${spark(c.spark, 96, 40, c.chg >= 0, 'c' + i)}</div>`; }).join('');
   const fc = v => v < 45 ? 'dn' : v > 55 ? 'up' : '';
   return doc(`<div id="card" class="page" style="width:1080px;padding:48px">
@@ -123,7 +123,7 @@ function daily(d, slot = 'УТРО') {
   <div class="card fg"><div class="lbl" style="align-self:flex-start">Страх и жадность</div>${gauge(d.fng.now)}<div class="big">${d.fng.now}</div><div class="st ${fc(d.fng.now)}">${d.fng.label}</div>
    <div class="hist"><div><b class="${fc(d.fng.yesterday)}">${d.fng.yesterday}</b><small>вчера</small></div><div><b class="${fc(d.fng.week)}">${d.fng.week}</b><small>неделя</small></div><div><b class="${fc(d.fng.month)}">${d.fng.month}</b><small>месяц</small></div></div></div>
  </div>
- <div class="card ev"><h3><i></i>Сегодня на радаре</h3>${ev}</div>
+ <div class="card ev"><h3><i></i>${d.eventsTomorrow ? 'Завтра на радаре' : 'Сегодня на радаре'}</h3>${ev}</div>
  <div class="foot" style="margin-top:22px"><span>Данные: CoinGecko · alternative.me · ForexFactory</span><span><b>@Filin1Radar</b></span></div>
 </div>`, `
 .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:34px}.kpi{padding:22px 24px}

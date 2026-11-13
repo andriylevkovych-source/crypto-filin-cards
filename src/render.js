@@ -19,7 +19,7 @@ const which = args[0] === 'all' || !args[0] ? ['daily', 'etf', 'deriv', 'weekly'
   let failed = 0;
   for (const kind of which) {
     try {
-      const d = mock ? require('./mock')[kind] : await data[kind]();
+      const d = mock ? require('./mock')[kind] : await data[kind](slot);
       const html = T[kind](d, slot);
       const tmp = path.join(OUT, `.${kind}.html`);
       fs.writeFileSync(tmp, html);

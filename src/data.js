@@ -25,13 +25,14 @@ const CG = 'https://api.coingecko.com/api/v3';
 const TOP = ['bitcoin', 'ethereum', 'solana', 'binancecoin', 'ripple'];
 
 // ---------- DAILY ----------
-async function daily() {
+async function daily(slot) {
+  const evening = /ВЕЧЕР/i.test(slot || '');
   const [glob, coins, top100, fng, cal] = await Promise.all([
     getJSON(`${CG}/global`),
     getJSON(`${CG}/coins/markets?vs_currency=usd&ids=${TOP.join(',')}&sparkline=true&price_change_percentage=24h`),
     getJSON(`${CG}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true`),
     getJSON('https://api.alternative.me/fng/?limit=31'),
-    getJSON('https://nfs.faireconomy.media/ff_calendar_thisweek.json').catch(() => []),
+    Promise.all([getJSON('https://nfs.faireconomy.media/ff_calendar_thisweek.json').catch(() => []), evening ? getJSON('https://nfs.faireconomy.media/ff_calendar_nextweek.json').catch(() => []) : []]).then(([a, b]) => [...(a || []), ...(b || [])]),
   ]);
   const g = glob.data;
   // 7d market-cap & dominance curves approximated from top-100 sparklines (price * circulating supply)
@@ -54,7 +55,7 @@ async function daily() {
     vol: g.total_volume.usd,
     coins: coins.map(c => ({ sym: c.symbol.toUpperCase(), id: c.id, price: c.current_price, chg: c.price_change_percentage_24h, spark: thin(c.sparkline_in_7d.price.slice(-48), 24) })),
     fng: { now: f[0], label: fngLabel(f[0]), yesterday: f[1], week: f[7], month: f[30] },
-    events: todaysEvents(cal),
+    events: todaysEvents(cal, evening ? 1 : 0), eventsTomorrow: evening,
   };
 }
 
@@ -68,8 +69,8 @@ const TITLE_RU = [
   [/ISM Services PMI/i, 'ISM в услугах'], [/JOLTS/i, 'Вакансии JOLTS'], [/Prelim UoM Consumer Sentiment/i, 'Потребдоверие Мичигана'],
   [/Fed Chair .* Speaks/i, 'Выступление главы ФРС'], [/ADP Non-Farm/i, 'Занятость ADP'], [/Treasury Currency Report/i, 'Отчёт Минфина по валютам'],
 ];
-function todaysEvents(cal) {
-  const today = kyivDate(new Date());
+function todaysEvents(cal, dayOffset = 0) {
+  const today = kyivDate(new Date(Date.now() + dayOffset * 864e5));
   return (cal || [])
     .filter(e => e.country === 'USD' && (e.impact === 'High' || e.impact === 'Medium'))
     .filter(e => kyivDate(new Date(e.date)) === today)
