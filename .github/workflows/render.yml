@@ -1,7 +1,7 @@
 name: render-cards
 on:
   schedule:
-    - cron: '20 6 * * *'     # 08:20 Kyiv  -> daily market card (posted ~09:00)
+    - cron: '45 5 * * *'     # 07:45 Kyiv  -> daily market card for the 09:00 morning digest
     - cron: '40 5 * * 2-6'   # 07:40 Kyiv  -> BTC ETF flows (previous US session)
     - cron: '30 10 * * *'    # 12:30 Kyiv  -> open interest & funding
     - cron: '0 15 * * 0'     # 17:00 Kyiv Sunday -> weekly recap
@@ -30,7 +30,7 @@ jobs:
         id: pick
         run: |
           case "${{ github.event.schedule }}" in
-            '20 6 * * *')   echo "kind=daily"  >> $GITHUB_OUTPUT ;;
+            '45 5 * * *')   echo "kind=daily"  >> $GITHUB_OUTPUT ;;
             '40 5 * * 2-6') echo "kind=etf"    >> $GITHUB_OUTPUT ;;
             '30 10 * * *')  echo "kind=deriv"  >> $GITHUB_OUTPUT ;;
             '0 15 * * 0')   echo "kind=weekly" >> $GITHUB_OUTPUT ;;

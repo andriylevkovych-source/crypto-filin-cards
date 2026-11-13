@@ -7,7 +7,7 @@ GitHub Actions по расписанию рисует фирменные кар�
 
 | Картинка | Файл | Когда (Киев) | Источники |
 |---|---|---|---|
-| Утренняя карточка рынка | `out/daily.png` | ежедневно 08:20 | CoinGecko, alternative.me, ForexFactory |
+| Утренняя карточка рынка | `out/daily.png` | ежедневно 07:45 (к утреннему дайджесту 09:00) | CoinGecko, alternative.me, ForexFactory |
 | Потоки в биткоин-ETF | `out/etf.png` | вт–сб 07:40 | TFTC / SoSoValue |
 | Открытый интерес и фандинг | `out/deriv.png` | ежедневно 12:30 | CoinGecko Derivatives |
 | Итоги недели | `out/weekly.png` | воскресенье 17:00 | CoinGecko, DefiLlama |
