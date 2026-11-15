@@ -29,6 +29,11 @@ module.exports = {
       { sym: 'BNB', price: 712, chg: 0.7, oi: 2.3e9, funding: 0.0015 },
     ],
   },
+  liq: {
+    total: 182e6, long: 131e6, short: 51e6, biggest: { sym: 'BTC', usd: 4.2e6, side: 'long' },
+    rows: [{ sym: 'BTC', long: 62e6, short: 21e6 }, { sym: 'ETH', long: 38e6, short: 16e6 }, { sym: 'SOL', long: 17e6, short: 7e6 }, { sym: 'XRP', long: 8e6, short: 4e6 }, { sym: 'DOGE', long: 6e6, short: 3e6 }],
+    hours: Array.from({ length: 24 }, (_, i) => ({ long: (Math.sin(i) + 1.3) * 3e6 + (i === 17 ? 25e6 : 0), short: (Math.cos(i * 1.3) + 1.2) * 1.6e6 })),
+  },
   weekly: {
     gainers: [{ sym: 'HYPE', chg: 24.6 }, { sym: 'ZEC', chg: 18.2 }, { sym: 'TAO', chg: 12.9 }, { sym: 'SUI', chg: 9.4 }, { sym: 'AAVE', chg: 7.1 }],
     losers: [{ sym: 'PEPE', chg: -21.3 }, { sym: 'WIF', chg: -17.8 }, { sym: 'ENA', chg: -14.2 }, { sym: 'APT', chg: -12.6 }, { sym: 'ARB', chg: -10.9 }],

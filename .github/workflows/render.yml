@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       kind:
-        description: 'daily | etf | deriv | weekly | all'
+        description: 'daily | etf | deriv | weekly | liq | all'
         default: 'all'
       slot:
         description: 'Daily card label (УТРО / ВЕЧЕР)'

@@ -146,8 +146,48 @@ async function weekly() {
   };
 }
 
+// ---------- LIQUIDATIONS (OKX public API, no key) ----------
+const OKX = 'https://www.okx.com/api/v5/public';
+async function liq() {
+  const syms = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE'];
+  const inst = await getJSON(`${OKX}/instruments?instType=SWAP`);
+  const ctVal = Object.fromEntries((inst.data || []).map(i => [i.instId, +i.ctVal]));
+  const since = Date.now() - 24 * 3600e3;
+  const hours = Array.from({ length: 24 }, () => ({ long: 0, short: 0 }));
+  let biggest = null;
+  const rows = [];
+  for (const s of syms) {
+    const instId = `${s}-USDT-SWAP`;
+    let after = '', long = 0, short = 0, n = 0;
+    for (let page = 0; page < 60; page++) {
+      const r = await getJSON(`${OKX}/liquidation-orders?instType=SWAP&instFamily=${s}-USDT&state=filled&limit=100${after ? '&after=' + after : ''}`);
+      const det = (r.data || []).flatMap(x => x.details || []);
+      if (!det.length) break;
+      let oldest = Infinity;
+      for (const d of det) {
+        const ts = +d.ts; oldest = Math.min(oldest, ts);
+        if (ts < since) continue;
+        const usd = +d.sz * (ctVal[instId] || 0) * +d.bkPx;
+        const isLong = d.side === 'sell' || d.posSide === 'long';
+        if (isLong) long += usd; else short += usd;
+        n++;
+        const h = 23 - Math.floor((Date.now() - ts) / 3600e3);
+        if (h >= 0 && h < 24) hours[h][isLong ? 'long' : 'short'] += usd;
+        if (!biggest || usd > biggest.usd) biggest = { sym: s, usd, side: isLong ? 'long' : 'short', ts };
+      }
+      if (oldest < since) break;
+      after = String(oldest);
+      await sleep(250);
+    }
+    rows.push({ sym: s, long, short, n });
+  }
+  const total = rows.reduce((a, r) => a + r.long + r.short, 0);
+  if (!total) throw new Error('OKX liquidations: empty');
+  return { rows, hours, biggest, total, long: rows.reduce((a, r) => a + r.long, 0), short: rows.reduce((a, r) => a + r.short, 0) };
+}
+
 function thin(a, n) { if (a.length <= n) return a; const s = (a.length - 1) / (n - 1); return Array.from({ length: n }, (_, i) => a[Math.round(i * s)]); }
 function fngLabel(v) { return v < 25 ? 'ЭКСТРЕМАЛЬНЫЙ СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'ЭКСТРЕМАЛЬНАЯ ЖАДНОСТЬ'; }
 function kyivDate(d) { return d.toLocaleDateString('en-CA', { timeZone: 'Europe/Kyiv' }); }
 
-module.exports = { daily, etf, deriv, weekly, fngLabel };
+module.exports = { daily, etf, deriv, weekly, liq, fngLabel };

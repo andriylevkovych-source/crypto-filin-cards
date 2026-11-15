@@ -202,4 +202,51 @@ function weekly(d) {
 .blk{margin-top:18px;padding:22px 28px}.blk h3{font-size:22px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:10px}.blk h3 i{width:10px;height:22px;border-radius:3px;display:inline-block}`);
 }
 
-module.exports = { daily, etf, deriv, weekly };
+// ---------- LIQUIDATIONS ----------
+function liqChart(hours, W, H) {
+  const pad = { l: 80, r: 16, t: 20, b: 40 };
+  const mx = Math.max(1, ...hours.map(h => Math.max(h.long, h.short))) / 1e6;
+  const step = niceStep(mx, 3), top = Math.ceil(mx / step) * step;
+  const mid = pad.t + (H - pad.t - pad.b) / 2, half = (H - pad.t - pad.b) / 2;
+  const slot = (W - pad.l - pad.r) / hours.length, bw = slot * .62;
+  let s = '';
+  for (let t = step; t <= top + 1e-9; t += step) {
+    const dy = t / top * half;
+    s += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${mid - dy}" y2="${mid - dy}" stroke="#2A2620"/><line x1="${pad.l}" x2="${W - pad.r}" y1="${mid + dy}" y2="${mid + dy}" stroke="#2A2620"/>`;
+    s += `<text x="${pad.l - 12}" y="${mid - dy + 6}" text-anchor="end" class="ax">${grp(t, t < 1 ? 1 : 0)}</text><text x="${pad.l - 12}" y="${mid + dy + 6}" text-anchor="end" class="ax">${grp(t, t < 1 ? 1 : 0)}</text>`;
+  }
+  s += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${mid}" y2="${mid}" stroke="#5A544A" stroke-width="1.5"/>`;
+  const now = new Date();
+  hours.forEach((h, i) => {
+    const x = pad.l + slot * i + (slot - bw) / 2;
+    const hs = h.short / 1e6 / top * half, hl = h.long / 1e6 / top * half;
+    if (hs > 0) s += `<rect x="${x}" y="${mid - Math.max(2, hs) - 1}" width="${bw}" height="${Math.max(2, hs)}" rx="3" fill="#2FD27A"/>`;
+    if (hl > 0) s += `<rect x="${x}" y="${mid + 1}" width="${bw}" height="${Math.max(2, hl)}" rx="3" fill="#FF4D4F"/>`;
+    if (i % 4 === 3) {
+      const t = new Date(now.getTime() - (23 - i) * 3600e3).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Kyiv', hour: '2-digit', minute: '2-digit' }).replace(/:\d\d$/, ':00');
+      s += `<text x="${x + bw / 2}" y="${H - 10}" text-anchor="middle" class="ax">${t}</text>`;
+    }
+  });
+  return `<svg width="${W}" height="${H}">${s}</svg>`;
+}
+function mln(v) { return v >= 1e9 ? big(v) : `$${grp(v / 1e6, v < 1e7 ? 1 : 0)} млн`; }
+function liq(d) {
+  const share = d.total ? d.long / d.total * 100 : 0;
+  const mood = share >= 65 ? 'Выносило в основном лонги' : share <= 35 ? 'Выносило в основном шорты' : 'Ликвидации примерно поровну в обе стороны';
+  const mx = Math.max(...d.rows.map(r => r.long + r.short)) || 1;
+  const rows = d.rows.map(r => `<div class="lr"><div class="s">${r.sym}</div><div class="bar"><div class="l" style="width:${r.long / mx * 100}%"></div><div class="sh" style="width:${r.short / mx * 100}%"></div></div><div class="nums"><span class="dn">${mln(r.long)}</span><span class="up">${mln(r.short)}</span></div></div>`).join('');
+  const b = d.biggest ? `Крупнейшая: ${d.biggest.sym} ${d.biggest.side === 'long' ? 'лонг' : 'шорт'} на ${mln(d.biggest.usd)}` : '';
+  return doc(`<div id="card" class="page wide">
+ <div class="hdr">${brand}<div class="leg"><span><i style="background:var(--rd)"></i>Лонги</span><span><i style="background:var(--gr)"></i>Шорты</span></div></div>
+ <div class="ttl"><div><h1>ЛИКВИДАЦИИ ЗА 24 ЧАСА</h1><p>${mood} · ${b}</p></div>
+  <div class="sum"><div class="card"><div class="lbl">Всего на OKX</div><b>${mln(d.total)}</b></div><div class="card"><div class="lbl">Лонги</div><b class="dn">${grp(share, 0)}%</b></div></div></div>
+ <div class="lq"><div class="card ch"><div class="lbl">По часам, млн $ (шорты вверх, лонги вниз)</div>${liqChart(d.hours, 640, 380)}</div>
+  <div class="card co"><div class="lbl">По монетам</div>${rows}</div></div>
+ <div class="foot wfoot"><span>Данные: OKX (USDT-фьючерсы) · только одна биржа, по рынку в целом суммы в разы больше</span><span><b>@Filin1Radar</b></span></div>
+</div>`, `.lq{display:grid;grid-template-columns:680px 1fr;gap:18px;margin-top:22px}.ch,.co{padding:18px 20px}.ch svg{display:block;margin-top:8px}
+.lr{display:grid;grid-template-columns:70px 1fr;grid-template-rows:auto auto;column-gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}.lr:last-child{border:0}
+.lr .s{grid-row:span 2;font-size:22px;font-weight:900;align-self:center}.bar{display:flex;gap:3px;height:14px}.bar div{border-radius:6px;min-width:3px}.bar .l{background:var(--rd)}.bar .sh{background:var(--gr)}
+.nums{display:flex;justify-content:space-between;font-size:17px;font-weight:800;margin-top:6px}`);
+}
+
+module.exports = { daily, etf, deriv, weekly, liq };
