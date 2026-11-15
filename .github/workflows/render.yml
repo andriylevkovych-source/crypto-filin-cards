@@ -6,6 +6,7 @@ on:
     - cron: '40 5 * * 2-6'   # 07:40 Kyiv  -> BTC ETF flows (previous US session)
     - cron: '30 10 * * *'    # 12:30 Kyiv  -> open interest & funding
     - cron: '0 15 * * 0'     # 17:00 Kyiv Sunday -> weekly recap
+    - cron: '15 7 * * *'     # 09:15 Kyiv -> 24h liquidations (OKX)
   workflow_dispatch:
     inputs:
       kind:
@@ -36,6 +37,7 @@ jobs:
             '40 5 * * 2-6') echo "kind=etf"    >> $GITHUB_OUTPUT ;;
             '30 10 * * *')  echo "kind=deriv"  >> $GITHUB_OUTPUT ;;
             '0 15 * * 0')   echo "kind=weekly" >> $GITHUB_OUTPUT ;;
+            '15 7 * * *')   echo "kind=liq"    >> $GITHUB_OUTPUT ;;
             *)              echo "kind=${{ inputs.kind || 'all' }}" >> $GITHUB_OUTPUT; echo "slot=${{ inputs.slot || 'УТРО' }}" >> $GITHUB_OUTPUT ;;
           esac
       - run: node src/render.js ${{ steps.pick.outputs.kind }} --slot "${{ steps.pick.outputs.slot || 'УТРО' }}"

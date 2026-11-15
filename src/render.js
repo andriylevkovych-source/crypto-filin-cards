@@ -1,4 +1,4 @@
-// Usage: node src/render.js <daily|etf|deriv|weekly|all> [--mock] [--slot УТРО]
+// Usage: node src/render.js <daily|etf|deriv|weekly|liq|all> [--mock] [--slot УТРО]
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -10,7 +10,7 @@ const args = process.argv.slice(2);
 const mock = args.includes('--mock');
 const slotIdx = args.indexOf('--slot');
 const slot = slotIdx >= 0 ? args[slotIdx + 1] : undefined;
-const which = args[0] === 'all' || !args[0] ? ['daily', 'etf', 'deriv', 'weekly'] : [args[0]];
+const which = args[0] === 'all' || !args[0] ? ['daily', 'etf', 'deriv', 'weekly', 'liq'] : [args[0]];
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });

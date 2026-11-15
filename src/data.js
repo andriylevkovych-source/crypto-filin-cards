@@ -159,7 +159,7 @@ async function liq() {
   for (const s of syms) {
     const instId = `${s}-USDT-SWAP`;
     let after = '', long = 0, short = 0, n = 0;
-    for (let page = 0; page < 60; page++) {
+    for (let page = 0; page < 150; page++) {
       const r = await getJSON(`${OKX}/liquidation-orders?instType=SWAP&instFamily=${s}-USDT&state=filled&limit=100${after ? '&after=' + after : ''}`);
       const det = (r.data || []).flatMap(x => x.details || []);
       if (!det.length) break;
