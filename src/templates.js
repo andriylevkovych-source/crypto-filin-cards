@@ -105,65 +105,84 @@ const doc = (body, extra = '') => `<!doctype html><html><head><meta charset="utf
 
 // ---------- DAILY ----------
 const COIN = { BTC: ['#F7931A', '₿', 'Bitcoin'], ETH: ['#8EA2FF', 'Ξ', 'Ethereum'], SOL: ['linear-gradient(135deg,#9945FF,#14F195)', 'S', 'Solana'], BNB: ['#F3BA2F', 'B', 'BNB'], XRP: ['#E6E6E6', 'X', 'XRP'] };
+const ICON = {
+  globe: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#F3F1EC" stroke-width="1.6"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c3 3.2 3 15.8 0 19M12 2.5c-3 3.2-3 15.8 0 19M4.5 7h15M4.5 17h15"/></svg>',
+  bars: '<svg viewBox="0 0 24 24" width="30" height="30" fill="#F3F1EC"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="8" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#F3F1EC" stroke-width="1.7"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><g fill="#F3F1EC" stroke="none"><rect x="6.5" y="12" width="3" height="2.4" rx=".5"/><rect x="10.5" y="12" width="3" height="2.4" rx=".5"/><rect x="14.5" y="12" width="3" height="2.4" rx=".5"/><rect x="6.5" y="16" width="3" height="2.4" rx=".5"/><rect x="10.5" y="16" width="3" height="2.4" rx=".5"/></g></svg>',
+  news: '<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#F3F1EC" stroke-width="1.7"><rect x="5" y="4" width="16" height="16" rx="1.5"/><path d="M5 8H3v10a2 2 0 0 0 2 2M8 8h10M8 12h4M8 16h4M14 12h4v4h-4z"/></svg>',
+};
+const CC = { BTC: ['#F7931A', '₿'], ETH: ['#627EEA', 'Ξ'], SOL: ['#14F1C5', '≡'], BNB: ['#F3BA2F', '◆'], XRP: ['#E9E9E9', '✕'] };
 function daily(d, slot = 'УТРО') {
   const k = kyivParts();
   const evening = /ВЕЧЕР/i.test(slot);
-  const capC = d.capChg >= 0 ? 'up' : 'dn';
-  const tiles = d.coins.map(c => { const [bg, g, name] = COIN[c.sym] || ['#888', c.sym[0], c.sym]; const up = c.chg >= 0;
-    return `<div class="ct ${up ? 'u' : 'd'}"><div class="ch"><div class="coin" style="background:${bg}">${g}</div><b>${c.sym}</b></div><div class="cp">${price(c.price)}</div>${chg(c.chg)}</div>`; }).join('');
-  const fl = v => v < 25 ? 'ЭКСТР. СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'ЭКСТР. ЖАДНОСТЬ';
-  const fc = d.fng.now < 45 ? 'dn' : d.fng.now > 55 ? 'up' : '';
-  const ev = (d.events || []).slice(0, 3).map(e => `<li><span class="tm">${e.time}</span>${esc(e.title)}${e.high ? ' <i class="hi">●</i>' : ''}</li>`);
-  const nw = (d.news || []).slice(0, evening ? 3 : 2).map(t => `<li class="nw">${esc(t)}</li>`);
-  const list = [...nw, ...ev];
-  if (!ev.length) list.push(`<li class="mut">Важной статистики США ${d.eventsTomorrow ? 'завтра' : 'сегодня'} нет</li>`);
+  const dd = String(k.day).padStart(2, '0');
+  const pc = (v, dec) => { const up = v >= 0; return `<span class="pc ${up ? 'u' : 'd'}">${up ? '▲' : '▼'} ${up ? '+' : '−'}${grp(Math.abs(v), dec ?? (Math.abs(v) < 0.1 ? 2 : 2))}%</span>`; };
+  const tiles = d.coins.map(c => { const [col, g] = CC[c.sym] || ['#888', c.sym[0]];
+    return `<div class="ct" style="--c:${col}"><div class="ch"><div class="cl" style="background:${col}">${g}</div><b>${c.sym}</b></div><div class="cp">${price(c.price)}</div>${pc(c.chg)}</div>`; }).join('');
+  const fl = v => v < 25 ? 'СИЛЬНЫЙ СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'СИЛЬНАЯ ЖАДНОСТЬ';
+  const fcol = d.fng.now < 45 ? 'var(--rd)' : d.fng.now > 55 ? 'var(--gr)' : 'var(--muted)';
+  const ev = (d.events || []).slice(0, 3).map(e => `<li>${d.eventsTomorrow ? 'Завтра' : 'Сегодня'} ${e.time} Киев — ${esc(e.title)}</li>`);
+  const nw = (d.news || []).slice(0, evening ? 3 : 2).map(t => `<li>${esc(t)}</li>`);
+  const list = [...nw, ...ev].slice(0, 4);
+  if (!ev.length) list.push(`<li>Важной статистики США ${d.eventsTomorrow ? 'завтра' : 'сегодня'} нет</li>`);
+  const capUp = d.capChg >= 0;
   return doc(`<div id="card" class="sq">
- <div class="bgimg"></div><div class="shade"></div>
- <div class="in">
- <div class="hdr">${brand}<div class="pill"><b>${k.day} ${MON[k.mon]} ${k.year}</b><span>${DOW[k.wd]} · ${slot}</span></div></div>
+ <div class="bg"></div><div class="art"></div><div class="vig"></div>
+ <div class="hd"><div class="logo"><img src="${A('icon.png')}"><div><b>Crypto Filin</b><small>РЫНОК • АНАЛИЗ • ПРОФИТ</small></div></div>
+  <div class="dt">${ICON.cal}<div><b>${dd} ${MON[k.mon]} ${k.year}</b><span>${DOW[k.wd]} · ${slot}</span></div></div></div>
  <div class="k3">
-  <div class="g"><div class="lbl">Капитализация</div><div class="kv">${big(d.cap)}</div>${chg(d.capChg)}</div>
-  <div class="g"><div class="lbl">Доминация BTC</div><div class="kv">${grp(d.dom, 1)}%</div>${chg(d.domChg, ' п.п.', 2)}</div>
-  <div class="g"><div class="lbl">Объём за 24 ч</div><div class="kv">${big(d.vol)}</div><span class="chg" style="background:rgba(247,166,0,.15);color:var(--or2)">${grp(d.vol / d.cap * 100, 1)}% от капы</span></div>
+  <div class="kp"><div class="kl">${ICON.globe}КАПИТАЛИЗАЦИЯ</div><div class="kv">${big(d.cap).replace(' трлн', 'T').replace(' млрд', 'B')}</div></div>
+  <div class="kp"><div class="kl"><span class="bt">₿</span>ДОМИНАЦИЯ BTC</div><div class="kv">${grp(d.dom, 1)}%</div></div>
+  <div class="kp"><div class="kl">${ICON.bars}РЫНОК ЗА 24 ЧАСА</div><div class="kv ${capUp ? 'up' : 'dn'}">${capUp ? '+' : '−'}${grp(Math.abs(d.capChg), 2)}%</div></div>
  </div>
  <div class="c5">${tiles}</div>
- <div class="bot">
-  <div class="owl"><img src="${A('owl-hoodie.png')}"></div>
-  <div class="rc">
-   <div class="g fg2"><div><div class="lbl">Страх и жадность</div><div class="fv"><b>${d.fng.now}</b><small>/100</small></div><div class="fs ${fc}">${fl(d.fng.now)}</div><div class="fh">вчера ${d.fng.yesterday} · неделя ${d.fng.week}</div></div>${gauge(d.fng.now)}</div>
-   <div class="g nb"><h3><i></i>${evening ? 'Главное за день и завтра' : 'Новости и события'}</h3><ul>${list.join('')}</ul></div>
-  </div>
+ <div class="rc">
+  <div class="pn fg"><div class="gw">${gauge(d.fng.now)}<div class="gv"><b>${d.fng.now}</b><small>/100</small><i style="color:${fcol}">${fl(d.fng.now)}</i></div></div><div class="ft">ИНДЕКС СТРАХА<small>вчера ${d.fng.yesterday} · неделя ${d.fng.week}</small></div></div>
+  <div class="pn nb"><h3>${ICON.news}${evening ? 'ИТОГИ ДНЯ / ЗАВТРА' : 'НОВОСТИ / СОБЫТИЯ'}</h3><ul>${list.join('')}</ul></div>
  </div>
- <div class="foot2"><span>Данные: CoinGecko · alternative.me · ForexFactory · ${String(k.hour).padStart(2, '0')}:00 Киев</span><b>@Filin1Radar</b></div>
- </div>
+ <div class="src">Данные: CoinGecko · alternative.me · ForexFactory, ${dd}.${String(k.mon + 1).padStart(2, '0')}.${k.year}, ${String(k.hour).padStart(2, '0')}:00 Киев <i>•</i> @Filin1Radar</div>
 </div>`, `
-.sq{position:relative;width:1080px;height:1080px;overflow:hidden;background:#0A0A0D}
-.bgimg{position:absolute;inset:-40px;background:url(${A('owl-hoodie.png')}) center/cover;filter:blur(22px) brightness(.55) saturate(1.3)}
-.shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,8,10,.86) 0%,rgba(8,8,10,.62) 48%,rgba(8,8,10,.35) 100%)}
-.in{position:relative;padding:40px 40px 0}
-.g{background:rgba(14,13,17,.78);border:1.5px solid rgba(247,166,0,.55);border-radius:20px;box-shadow:0 0 22px rgba(247,166,0,.18),inset 0 0 0 1px rgba(255,255,255,.03);backdrop-filter:blur(6px)}
-.k3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:26px}.k3 .g{padding:16px 20px}
-.kv{font-size:40px;font-weight:900;letter-spacing:-1px;margin:6px 0 6px;white-space:nowrap}
-.c5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:14px}
-.ct{background:rgba(14,13,17,.8);border-radius:18px;padding:14px 12px;text-align:center;border:1.5px solid rgba(255,255,255,.12)}
-.ct.u{border-color:rgba(47,210,122,.6);box-shadow:0 0 18px rgba(47,210,122,.18)}.ct.d{border-color:rgba(255,77,79,.6);box-shadow:0 0 18px rgba(255,77,79,.18)}
-.ch{display:flex;align-items:center;justify-content:center;gap:8px}.ch b{font-size:20px;font-weight:800}
-.coin{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:16px;color:#111}
-.cp{font-size:24px;font-weight:900;margin:8px 0 8px;white-space:nowrap}.ct .chg{font-size:16px}
-.bot{display:grid;grid-template-columns:410px 1fr;gap:16px;margin-top:16px;height:560px}
-.owl{position:relative;border-radius:22px;overflow:hidden;border:1.5px solid rgba(247,166,0,.45);box-shadow:0 0 30px rgba(247,166,0,.25)}
-.owl img{position:absolute;height:100%;left:50%;transform:translateX(-47%)}
-.rc{display:flex;flex-direction:column;gap:14px;min-width:0}
-.fg2{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;height:178px}.fg2 svg{width:230px;height:132px;margin-top:0}
-.fv b{font-size:58px;font-weight:900;line-height:1}.fv small{font-size:20px;color:var(--muted);font-weight:700}
-.fs{font-size:17px;font-weight:900;letter-spacing:1px;margin-top:4px}.fh{font-size:14px;color:var(--muted);font-weight:600;margin-top:6px}
-.nb{flex:1;padding:16px 20px;overflow:hidden}.nb h3{font-size:20px;font-weight:900;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.nb h3 i{width:9px;height:20px;background:var(--or);border-radius:3px}
-.nb ul{list-style:none}.nb li{font-size:17px;font-weight:700;line-height:1.3;padding:9px 0 9px 22px;border-top:1px solid rgba(255,255,255,.08);position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.nb li:before{content:'';position:absolute;left:2px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--or)}
-.nb li.nw{color:#F3F1EC}.nb li.mut{color:var(--muted)}
-.tm{color:var(--or2);font-weight:900;margin-right:8px}.hi{color:var(--rd);font-style:normal;font-size:13px}
-.foot2{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:14px;color:#B9B3A8;font-weight:600}.foot2 b{color:var(--or)}`);
+@font-face{font-family:RC;src:url(${A('fonts/RC-cyr-700.woff2')});font-weight:700;unicode-range:U+0400-04FF}
+@font-face{font-family:RC;src:url(${A('fonts/RC-lat-700.woff2')});font-weight:700}
+@font-face{font-family:RC;src:url(${A('fonts/RC-cyr-800.woff2')});font-weight:800;unicode-range:U+0400-04FF}
+@font-face{font-family:RC;src:url(${A('fonts/RC-lat-800.woff2')});font-weight:800}
+@font-face{font-family:RC;src:url(${A('fonts/RC-cyr-900.woff2')});font-weight:900;unicode-range:U+0400-04FF}
+@font-face{font-family:RC;src:url(${A('fonts/RC-lat-900.woff2')});font-weight:900}
+.sq{position:relative;width:1080px;height:1080px;overflow:hidden;background:#0B0806;font-family:RC,F,sans-serif}
+.bg{position:absolute;inset:-60px;background:url(${A('owl-hoodie.png')}) 70% 30%/cover;filter:blur(18px) brightness(.62) saturate(1.35)}
+.art{position:absolute;left:-20px;bottom:-10px;width:640px;height:640px;background:url(${A('owl-hoodie.png')}) center/cover;-webkit-mask-image:radial-gradient(ellipse 78% 80% at 40% 60%,#000 62%,transparent 100%)}
+.vig{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,5,4,.78) 0%,rgba(6,5,4,.35) 40%,rgba(0,0,0,0) 60%)}
+.hd,.k3,.c5,.rc,.src{position:absolute}
+.hd{left:28px;right:28px;top:22px;display:flex;align-items:center;gap:40px}
+.logo{display:flex;align-items:center;gap:14px}.logo img{width:96px;height:80px;object-fit:cover;border-radius:16px}
+.logo b{display:block;font-size:60px;font-weight:900;letter-spacing:-.5px;line-height:1;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.logo small{display:block;font-size:17px;font-weight:800;letter-spacing:3px;color:#F3F1EC;margin-top:6px;padding-left:20px}
+.dt{display:flex;align-items:center;gap:16px;border:2px solid rgba(255,255,255,.55);border-radius:14px;padding:10px 20px;background:rgba(10,9,8,.7)}
+.dt b{display:block;font-size:30px;font-weight:800;color:#fff}.dt span{display:block;font-size:24px;font-weight:800;color:var(--or)}
+.k3{left:16px;right:16px;top:140px;display:grid;grid-template-columns:1.05fr 1.02fr 1fr;gap:10px}
+.kp{height:126px;border-radius:14px;border:2.5px solid #F7A600;background:linear-gradient(180deg,rgba(18,14,10,.88),rgba(10,8,6,.92));box-shadow:0 0 16px rgba(247,166,0,.55),inset 0 0 18px rgba(247,166,0,.12);padding:12px 18px;overflow:hidden}
+.kl{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:800;color:#F3F1EC}
+.bt{width:30px;height:30px;border-radius:50%;background:#F7931A;color:#fff;display:grid;place-items:center;font-size:19px;font-weight:900}
+.kv{font-size:66px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.1;margin-top:4px;white-space:nowrap}.kv.dn{color:#FF3B3B}.kv.up{color:#2FE07A}
+.c5{left:16px;right:16px;top:282px;display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.ct{height:152px;border-radius:14px;border:2.5px solid var(--c);background:linear-gradient(180deg,rgba(18,14,12,.9),rgba(8,7,6,.94));box-shadow:0 0 14px color-mix(in srgb,var(--c) 55%,transparent);padding:10px 10px;text-align:center}
+.ch{display:flex;align-items:center;justify-content:center;gap:10px}.ch b{font-size:26px;font-weight:800;color:#fff}
+.cl{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:24px;font-weight:900;box-shadow:0 0 0 2px rgba(255,255,255,.15)}
+.cp{font-size:36px;font-weight:900;color:#fff;margin:8px 0 6px;white-space:nowrap;letter-spacing:-.5px}
+.pc{display:inline-block;font-size:24px;font-weight:900;border-radius:8px;padding:2px 12px;border:2px solid}
+.pc.d{color:#FF4D4F;border-color:#C62828;background:rgba(120,10,10,.55)}.pc.u{color:#2FE07A;border-color:#1E9E52;background:rgba(10,90,40,.55)}
+.rc{left:560px;right:16px;top:450px;display:flex;flex-direction:column;gap:12px}
+.pn{border-radius:14px;border:2.5px solid rgba(255,255,255,.75);background:linear-gradient(180deg,rgba(18,15,12,.9),rgba(8,7,6,.94));box-shadow:0 0 16px rgba(247,166,0,.35)}
+.fg{height:150px;overflow:hidden;display:flex;align-items:center;justify-content:space-between;padding:6px 18px 0 10px}
+.gw{position:relative;width:250px;height:136px}.gw svg{width:250px;height:144px;margin:0}
+.gv{position:absolute;left:0;right:0;top:64px;text-align:center}.gv b{font-size:44px;font-weight:900;color:#fff;line-height:1}.gv small{font-size:20px;color:#ddd;font-weight:800}
+.gv i{display:block;font-style:normal;font-size:17px;font-weight:900;margin-top:2px}
+.ft{font-size:28px;font-weight:900;color:#fff;text-align:right}.ft small{display:block;font-size:17px;color:#BDB6AA;font-weight:700;margin-top:8px}
+.nb{border-color:#F7A600;padding:14px 20px 8px;height:404px;overflow:hidden}
+.nb h3{display:flex;align-items:center;gap:12px;font-size:32px;font-weight:900;color:#fff;padding-bottom:10px;border-bottom:2px solid rgba(247,166,0,.6)}
+.nb ul{list-style:none}.nb li{position:relative;font-size:23px;font-weight:700;color:#F3F1EC;line-height:1.22;padding:12px 0 12px 34px;border-bottom:1px solid rgba(255,255,255,.12);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nb li:last-child{border:0}.nb li:before{content:'';position:absolute;left:4px;top:19px;width:16px;height:16px;border-radius:50%;background:#F7A600}
+.src{right:20px;bottom:12px;font-size:16px;font-weight:700;color:#E8E2D6;text-shadow:0 1px 4px #000}.src i{color:var(--or);font-style:normal;margin:0 6px}`);
 }
 
 // ---------- ETF ----------

@@ -23,6 +23,28 @@ async function rawJSON(url, tries) {
 
 const CG = 'https://api.coingecko.com/api/v3';
 
+// UPPERCASE headline -> sentence case, keeping acronyms, tickers and common proper names
+const ACR = new Set(['США', 'ФРС', 'ЕС', 'ЦБ', 'ВВП', 'ООН', 'НАТО', 'ОПЕК', 'ИИ', 'РФ', 'КНР', 'МВФ', 'СМИ', 'ВС', 'ПВО', 'ЕЦБ', 'КСИР', 'ФБР', 'ЦРУ', 'ОАЭ']);
+const PROPER = /^(иран|израил|трамп|рубио|уорш|пауэлл|бессент|вэнс|венс|хегсет|нетаньяху|хаменеи|арагчи|герман|кита|росси|украин|бахрейн|ормуз|европ|япони|катар|ирак|вашингтон|тегеран|лондон|сенат|конгресс|белый|уолл|маск|сэйлор|ли |токио|пекин|москв|бразил|индия|инди|франц|британ|сауд|ливан|сири|йемен|хамас|хезболл|хуанг|зеленск|путин|си )/i;
+function sentenceCase(t) {
+  if (/[a-zа-яё]/.test(t)) return t; // already mixed case
+  let first = true;
+  return t.split(/(\s+)/).map(tok => {
+    if (/^\s+$/.test(tok)) return tok;
+    const out = tok.split('-').map(part => {
+      const core = part.replace(/[^\p{L}\p{N}&$]/gu, '');
+      let r;
+      if (!/\p{L}/u.test(core)) r = part;
+      else if (/[A-Z]/.test(core)) r = core.length <= 5 ? part : part.charAt(0) + part.slice(1).toLowerCase();
+      else if (ACR.has(core)) r = part;
+      else { const low = part.toLowerCase(); r = PROPER.test(low + ' ') ? low.replace(/\p{L}/u, c => c.toUpperCase()) : low; }
+      return r;
+    }).join('-');
+    if (first && /\p{L}/u.test(out)) { first = false; return out.replace(/\p{L}/u, c => c.toUpperCase()); }
+    return out;
+  }).join('');
+}
+
 // latest headlines from our own channel (public web preview), newest first
 async function channelHeadlines(hours = 14, max = 3) {
   try {
@@ -37,7 +59,7 @@ async function channelHeadlines(hours = 14, max = 3) {
       const first = m[1].split(/<br\s*\/?>/)[0].replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').trim();
       if (!first || /^(☀️|🌙|⏰|🗳|📊 S&P|💥 ЛИКВИДАЦИИ|🏦|⚖️|📅|🧭)/u.test(first) || /ДОБРОЕ УТРО|ИТОГИ ДНЯ|ОПРОС/i.test(first)) continue;
       const clean = first.replace(/^[^\p{L}\p{N}$]+/u, '').trim();
-      out.push({ ts, t: clean.length > 70 ? clean.slice(0, 68).replace(/\s+\S*$/, '') + '…' : clean });
+      out.push({ ts, t: sentenceCase(clean.length > 80 ? clean.slice(0, 78).replace(/\s+\S*$/, '') + '…' : clean) });
     }
     return out.sort((a, b) => b.ts - a.ts).slice(0, max).map(x => x.t);
   } catch { return []; }
@@ -230,4 +252,4 @@ function thin(a, n) { if (a.length <= n) return a; const s = (a.length - 1) / (n
 function fngLabel(v) { return v < 25 ? 'ЭКСТРЕМАЛЬНЫЙ СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'ЭКСТРЕМАЛЬНАЯ ЖАДНОСТЬ'; }
 function kyivDate(d) { return d.toLocaleDateString('en-CA', { timeZone: 'Europe/Kyiv' }); }
 
-module.exports = { daily, etf, deriv, weekly, liq, gap, fngLabel };
+module.exports = { sentenceCase, daily, etf, deriv, weekly, liq, gap, fngLabel };
