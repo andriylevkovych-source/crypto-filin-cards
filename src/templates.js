@@ -114,55 +114,54 @@ const ICON = {
 const CC = { BTC: ['#F7931A', '₿'], ETH: ['#627EEA', 'Ξ'], SOL: ['#14F1C5', '≡'], BNB: ['#F3BA2F', '◆'], XRP: ['#E9E9E9', '✕'] };
 function dailyOwl(d, slot = 'УТРО') {
   const k = kyivParts();
-  const evening = /ВЕЧЕР/i.test(slot);
   const dd = String(k.day).padStart(2, '0');
   const sgn = (v, dec = 2) => `${v >= 0 ? '+' : '−'}${grp(Math.abs(v), dec)}%`;
-  const X = [[34, 258], [292, 512], [548, 754], [788, 1008], [1044, 1258]];
-  const tiles = d.coins.slice(0, 5).map((c, i) => { const up = c.chg >= 0; const [a, b] = X[i];
-    return `<div class="cpz" style="left:${a}px;width:${b - a}px">${price(c.price)}</div><div class="pl ${up ? 'u' : 'd'}" style="left:${a}px;width:${b - a}px"><span>${up ? '▲' : '▼'} ${sgn(c.chg)}</span></div>`; }).join('');
+  const T = [[20, 260], [270, 508], [520, 744], [755, 992], [1003, 1236]];
+  const PL = [[40, 240], [290, 490], [538, 725], [775, 973], [1022, 1217]];
+  const coins = d.coins.slice(0, 5).map((c, i) => { const up = c.chg >= 0;
+    return `<div class="cp" style="left:${T[i][0]}px;width:${T[i][1] - T[i][0]}px">${price(c.price)}</div>
+<div class="pl ${up ? 'u' : 'd'}" style="left:${PL[i][0]}px;width:${PL[i][1] - PL[i][0]}px">${up ? '▲' : '▼'} ${sgn(c.chg)}</div>`; }).join('');
   const fl = v => v < 25 ? 'СИЛЬНЫЙ СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'СИЛЬНАЯ ЖАДНОСТЬ';
-  const fcol = d.fng.now < 45 ? '#FF4D4F' : d.fng.now > 55 ? '#2FE07A' : '#E8E2D6';
-  // gauge arc (red → yellow → green) with knob
-  const cx = 905, cy = 716, R = 124, a = v => Math.PI * (1 - v / 100), P = v => [cx + R * Math.cos(a(v)), cy - R * Math.sin(a(v))];
-  const [kx, ky] = P(Math.max(2, Math.min(98, d.fng.now)));
-  const ev = (d.events || []).slice(0, 3).map(e => `<li><span>${d.eventsTomorrow ? 'Завтра' : 'Сегодня'} ${e.time} Киев — ${esc(e.title)}</span></li>`);
-  const nw = (d.news || []).slice(0, evening ? 3 : 2).map(t => `<li><span>${esc(t)}</span></li>`);
-  const list = [...nw, ...ev].slice(0, 4);
-  if (!ev.length) list.push(`<li><span>Важной статистики США ${d.eventsTomorrow ? 'завтра' : 'сегодня'} нет</span></li>`);
+  const fcol = d.fng.now < 45 ? '#FF4D4F' : d.fng.now > 55 ? '#2FE07A' : '#F3F1EC';
+  const cx = 879, cy = 675, R = 121, ang = Math.PI * (1 - Math.max(2, Math.min(98, d.fng.now)) / 100);
+  const kx = cx + R * Math.cos(ang), ky = cy - R * Math.sin(ang);
+  const ev = (d.events || []).slice(0, 3).map(e => `${d.eventsTomorrow ? 'Завтра' : 'Сегодня'} ${e.time} Киев — ${e.title}`);
+  const news = d.news || [];
+  const rows = [...news.slice(0, 2), ...ev, ...news.slice(2)].slice(0, 5);
+  if (!ev.length && rows.length < 5) rows.push(`Важной статистики США ${d.eventsTomorrow ? 'завтра' : 'сегодня'} нет`);
+  const BY = [815, 888, 958, 1025, 1092];
+  const list = BY.map((y, i) => rows[i] ? `<div class="nr" style="top:${y - 36}px">${esc(rows[i])}</div>` : `<div class="hide" style="top:${y - 14}px"></div>`).join('');
   const capUp = d.capChg >= 0;
   return doc(`<div id="card" class="ow">
  <div class="dt"><b>${dd} ${MON[k.mon]} ${k.year}</b><span>${DOW[k.wd]} · ${slot}</span></div>
- <div class="kv" style="left:48px">${big(d.cap).replace(' трлн', 'T').replace(' млрд', 'B')}</div>
- <div class="kv" style="left:478px">${grp(d.dom, 1)}%</div>
- <div class="kv ${capUp ? 'up' : 'dn'}" style="left:890px">${sgn(d.capChg)}</div>
- ${tiles}
- <svg class="gz" width="1290" height="1290"><defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#E53935"/><stop offset=".35" stop-color="#F57C00"/><stop offset=".55" stop-color="#FBC02D"/><stop offset="1" stop-color="#43A047"/></linearGradient></defs>
-  <path d="M${cx - R} ${cy} A${R} ${R} 0 0 1 ${cx + R} ${cy}" stroke="url(#gg)" stroke-width="18" fill="none" stroke-linecap="round"/>
-  <circle cx="${kx}" cy="${ky}" r="13" fill="#3a3a3a" stroke="#F3F1EC" stroke-width="4"/></svg>
+ <div class="kv" style="left:46px">${big(d.cap).replace(' трлн', 'T').replace(' млрд', 'B')}</div>
+ <div class="kv" style="left:466px">${grp(d.dom, 1)}%</div>
+ <div class="kv ${capUp ? 'up' : 'dn'}" style="left:866px">${sgn(d.capChg)}</div>
+ ${coins}
+ <svg class="kn" width="1254" height="1254"><circle cx="${kx}" cy="${ky}" r="14" fill="#2b2b2b" stroke="#F3F1EC" stroke-width="4"/></svg>
  <div class="gv"><b>${d.fng.now}</b><small>/100</small><i style="color:${fcol}">${fl(d.fng.now)}</i></div>
- <ul class="nl">${list.join('')}</ul>
- <div class="src">Данные: CoinGecko, ${dd}.${String(k.mon + 1).padStart(2, '0')}.${k.year}, ${String(k.hour).padStart(2, '0')}:00 Киев <i>•</i> @Filin1Radar</div>
+ ${list}
+ <div class="src">Данные: CoinGecko · ${dd}.${String(k.mon + 1).padStart(2, '0')}.${k.year}, ${String(k.hour).padStart(2, '0')}:00 Киев <i>•</i> @Filin1Radar</div>
 </div>`, `
+@font-face{font-family:RC;src:url(${A('fonts/RC-cyr-700.woff2')});font-weight:700;unicode-range:U+0400-04FF}
+@font-face{font-family:RC;src:url(${A('fonts/RC-lat-700.woff2')});font-weight:700}
 @font-face{font-family:RC;src:url(${A('fonts/RC-cyr-800.woff2')});font-weight:800;unicode-range:U+0400-04FF}
 @font-face{font-family:RC;src:url(${A('fonts/RC-lat-800.woff2')});font-weight:800}
 @font-face{font-family:RC;src:url(${A('fonts/RC-cyr-900.woff2')});font-weight:900;unicode-range:U+0400-04FF}
 @font-face{font-family:RC;src:url(${A('fonts/RC-lat-900.woff2')});font-weight:900}
-@font-face{font-family:RC;src:url(${A('fonts/RC-cyr-700.woff2')});font-weight:700;unicode-range:U+0400-04FF}
-@font-face{font-family:RC;src:url(${A('fonts/RC-lat-700.woff2')});font-weight:700}
-.ow{position:relative;width:1290px;height:1290px;background:url(${A('daily-owl-base.jpg')}) 0 0/1290px 1290px;font-family:RC,sans-serif;color:#fff}
+.ow{position:relative;width:1254px;height:1254px;background:url(${A('daily-owl-base.jpg')}) 0 0/1254px 1254px;font-family:RC,sans-serif;color:#fff}
 .ow>*{position:absolute}
-.dt{left:796px;top:60px}.dt b{display:block;font-size:40px;font-weight:800;line-height:1.05}.dt span{display:block;font-size:38px;font-weight:900;color:#F7A600;line-height:1.05}
-.kv{top:236px;font-size:88px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 3px 10px rgba(0,0,0,.6);white-space:nowrap}.kv.dn{color:#FF3B30}.kv.up{color:#2FE07A}
-.cpz{top:424px;text-align:center;font-size:50px;font-weight:900;letter-spacing:-.5px;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.6)}
-.pl{top:486px;text-align:center}.pl span{display:inline-block;font-size:34px;font-weight:900;padding:2px 18px;border-radius:10px;border:2.5px solid}
-.pl.d span{color:#FF4D4F;border-color:#C62828;background:rgba(110,12,12,.75)}.pl.u span{color:#3DF08A;border-color:#1E9E52;background:rgba(12,90,40,.75)}
-.gz{left:0;top:0}
-.gv{left:${cx - 100}px;width:200px;top:${cy - 104}px;text-align:center}.gv b{font-size:58px;font-weight:900;line-height:1}.gv small{font-size:28px;font-weight:800;color:#ddd}
-.gv i{display:block;font-style:normal;font-size:22px;margin-top:4px;font-weight:900;line-height:1.1}
-.nl{left:780px;top:828px;width:470px;list-style:none}
-.nl li{position:relative;padding:9px 0 9px 44px;border-bottom:1.5px solid rgba(255,255,255,.14);color:#F3F1EC}.nl li span{font-size:25px;font-weight:700;line-height:1.16;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.nl li:last-child{border:0}.nl li:before{content:'';position:absolute;left:8px;top:19px;width:20px;height:20px;border-radius:50%;background:#F7A600}
-.src{right:30px;top:1244px;font-size:22px;font-weight:700;color:#E8E2D6;text-shadow:0 1px 4px #000}.src i{color:#F7A600;font-style:normal;margin:0 6px}`);
+.dt{left:768px;top:50px}.dt b{display:block;font-size:40px;font-weight:800;line-height:1.05}.dt span{display:block;font-size:37px;font-weight:900;color:#F7A600;line-height:1.08}
+.kv{top:230px;font-size:80px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 3px 10px rgba(0,0,0,.65);white-space:nowrap}.kv.dn{color:#FF3B30}.kv.up{color:#2FE07A}
+.cp{top:394px;text-align:center;font-size:50px;font-weight:900;letter-spacing:-.5px;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.pl{top:458px;height:47px;line-height:43px;text-align:center;font-size:32px;font-weight:900;border-radius:9px;border:2.5px solid;box-sizing:border-box}
+.pl.d{color:#FF4D4F;border-color:#D32F2F;background:#3a0b0d}.pl.u{color:#3DF08A;border-color:#22A55A;background:#0b3a1d}
+.kn{left:0;top:0}
+.gv{left:${cx - 100}px;width:200px;top:${cy - 92}px;text-align:center}.gv b{font-size:58px;font-weight:900;line-height:1}.gv small{font-size:26px;font-weight:800;color:#ddd}
+.gv i{display:block;font-style:normal;font-size:23px;font-weight:900;margin-top:4px}
+.nr{left:797px;width:420px;height:72px;display:flex;align-items:center;font-size:24px;font-weight:700;line-height:1.14;color:#F3F1EC}
+.hide{left:757px;width:30px;height:30px;border-radius:50%;background:#0c0c0e}
+.src{right:24px;top:1216px;font-size:20px;font-weight:700;color:#E8E2D6;text-shadow:0 1px 4px #000,0 0 8px #000}.src i{color:#F7A600;font-style:normal;margin:0 6px}`);
 }
 
 // morning: illustrated owl card; evening: classic dark card (alternating looks)

@@ -75,7 +75,7 @@ async function daily(slot) {
     getJSON(`${CG}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true`),
     getJSON('https://api.alternative.me/fng/?limit=31'),
     Promise.all([getJSON('https://nfs.faireconomy.media/ff_calendar_thisweek.json').catch(() => []), evening ? getJSON('https://nfs.faireconomy.media/ff_calendar_nextweek.json').catch(() => []) : []]).then(([a, b]) => [...(a || []), ...(b || [])]),
-    channelHeadlines(evening ? 12 : 14, 3),
+    channelHeadlines(evening ? 12 : 14, 5),
   ]);
   const g = glob.data;
   // 7d market-cap & dominance curves approximated from top-100 sparklines (price * circulating supply)
