@@ -35,7 +35,7 @@ module.exports = {
     hours: Array.from({ length: 24 }, (_, i) => ({ long: (Math.sin(i) + 1.3) * 3e6 + (i === 17 ? 25e6 : 0), short: (Math.cos(i * 1.3) + 1.2) * 1.6e6 })),
   },
   gap: {
-    es: { sym: 'ES=F', fri: 6812.5, open: 6841.25, last: 6836, gap: 0.42, now: 0.34, before: walk(28, 6790, 0.8, 6, 7).concat([6812.5]), after: walk(6, 6841, -1, 4, 9) },
+    es: { sym: 'ES=F', filled: false, up: true, fri: 6812.5, open: 6841.25, last: 6836, gap: 0.42, now: 0.34, before: walk(28, 6790, 0.8, 6, 7).concat([6812.5]), after: walk(6, 6841, -1, 4, 9) },
     nq: { sym: 'NQ=F', fri: 25400, open: 25530, last: 25510, gap: 0.51, now: 0.43 },
   },
   weekly: {

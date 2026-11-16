@@ -268,7 +268,7 @@ function gapChart(es, W, H) {
   s += `<path d="${line(es.before, 0)}" fill="none" stroke="#9A958C" stroke-width="3"/>`;
   s += `<path d="${line(es.after, ax)}" fill="none" stroke="${col}" stroke-width="3.5"/>`;
   s += `<circle cx="${x(ax)}" cy="${y(es.open)}" r="7" fill="${col}"/>`;
-  s += `<text x="${(x(bx) + x(ax)) / 2}" y="${H - 12}" text-anchor="middle" class="ax">выходные</text><text x="${x(0)}" y="${H - 12}" class="ax">пятница</text><text x="${W - pad.r}" y="${H - 12}" text-anchor="end" class="ax">открытие недели</text>`;
+  s += `<text x="${(x(bx) + x(ax)) / 2}" y="${(y(es.fri) + y(es.open)) / 2 + 6}" text-anchor="middle" style="fill:${col};font-size:17px;font-weight:800">ГЭП</text><text x="${(x(bx) + x(ax)) / 2}" y="${H - 12}" text-anchor="middle" class="ax">выходные</text><text x="${x(0)}" y="${H - 12}" class="ax">пятница</text><text x="${W - pad.r}" y="${H - 12}" text-anchor="end" class="ax">открытие недели</text>`;
   return `<svg width="${W}" height="${H}">${s}</svg>`;
 }
 function gap(d) {
@@ -277,8 +277,8 @@ function gap(d) {
   const k = kyivParts();
   return doc(`<div id="card" class="page wide">
  <div class="hdr">${brand}<div class="pill"><b>ОТКРЫТИЕ НЕДЕЛИ</b><span>${k.day} ${MON[k.mon]} ${k.year}</span></div></div>
- <div class="ttl"><div><h1 style="font-size:38px;white-space:nowrap">S&amp;P 500: ГЭП ${up ? 'ВВЕРХ' : 'ВНИЗ'} ${sg(es.gap)}</h1><p>Фьючерс E-mini, свечи 15 мин · пятница → открытие недели</p></div>
-  <div class="sum"><div class="card"><div class="lbl">S&amp;P 500 сейчас</div><b class="${es.now >= 0 ? 'up' : 'dn'}">${sg(es.now)}</b></div><div class="card"><div class="lbl">Nasdaq 100 гэп</div><b class="${nq.gap >= 0 ? 'up' : 'dn'}">${sg(nq.gap)}</b></div></div></div>
+ <div class="ttl"><div><h1 style="font-size:36px;white-space:nowrap">S&amp;P 500 ОТКРЫЛСЯ ${up ? 'ВЫШЕ' : 'НИЖЕ'} ПЯТНИЦЫ: ${sg(es.gap)}</h1><p>Гэп ${up ? 'снизу' : 'сверху'}: ${grp(Math.min(es.fri, es.open))}–${grp(Math.max(es.fri, es.open))} · ${es.filled ? 'уже закрыт' : 'пока не закрыт'}</p></div>
+  <div class="sum"><div class="card"><div class="lbl">S&amp;P 500 сейчас</div><b class="${es.now >= 0 ? 'up' : 'dn'}">${sg(es.now)}</b></div><div class="card"><div class="lbl">Nasdaq 100 открытие</div><b class="${nq.gap >= 0 ? 'up' : 'dn'}">${sg(nq.gap)}</b></div></div></div>
  <div class="card" style="margin-top:20px;padding:14px 18px">${gapChart(es, 1144, 350)}</div>
  <div class="foot wfoot"><span>Данные: Yahoo Finance · ES=F, NQ=F · пятница ${grp(es.fri)} → открытие ${grp(es.open)}</span><span><b>@Filin1Radar</b></span></div>
 </div>`);

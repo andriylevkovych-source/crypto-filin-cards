@@ -195,7 +195,9 @@ async function futGap(sym) {
   for (let i = 1; i < bars.length; i++) { const d = bars[i].t - bars[i - 1].t; if (d > gmax) { gmax = d; gi = i; } }
   if (gi < 1 || gmax < 24 * 3600) throw new Error(sym + ': no weekend gap found');
   const fri = bars[gi - 1].c, open = bars[gi].o, last = bars.at(-1).c;
-  return { sym, fri, open, last, gap: (open / fri - 1) * 100, now: (last / fri - 1) * 100,
+  const after = bars.slice(gi).map(b => b.c);
+  const filled = open >= fri ? Math.min(...after) <= fri : Math.max(...after) >= fri;
+  return { sym, fri, open, last, filled, up: open >= fri, gap: (open / fri - 1) * 100, now: (last / fri - 1) * 100,
     before: bars.slice(Math.max(0, gi - 28), gi).map(b => b.c), after: bars.slice(gi).map(b => b.c), openTs: bars[gi].t };
 }
 async function gap() {
