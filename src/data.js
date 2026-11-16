@@ -22,17 +22,38 @@ async function rawJSON(url, tries) {
 }
 
 const CG = 'https://api.coingecko.com/api/v3';
+
+// latest headlines from our own channel (public web preview), newest first
+async function channelHeadlines(hours = 14, max = 3) {
+  try {
+    const r = await fetch('https://t.me/s/Filin1Radar', { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const html = await r.text();
+    const out = [];
+    const re = /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>[\s\S]*?<time[^>]*datetime="([^"]+)"/g;
+    let m;
+    while ((m = re.exec(html))) {
+      const ts = Date.parse(m[2]);
+      if (Date.now() - ts > hours * 3600e3) continue;
+      const first = m[1].split(/<br\s*\/?>/)[0].replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').trim();
+      if (!first || /^(☀️|🌙|⏰|🗳|📊 S&P|💥 ЛИКВИДАЦИИ|🏦|⚖️|📅|🧭)/u.test(first) || /ДОБРОЕ УТРО|ИТОГИ ДНЯ|ОПРОС/i.test(first)) continue;
+      const clean = first.replace(/^[^\p{L}\p{N}$]+/u, '').trim();
+      out.push({ ts, t: clean.length > 70 ? clean.slice(0, 68).replace(/\s+\S*$/, '') + '…' : clean });
+    }
+    return out.sort((a, b) => b.ts - a.ts).slice(0, max).map(x => x.t);
+  } catch { return []; }
+}
 const TOP = ['bitcoin', 'ethereum', 'solana', 'binancecoin', 'ripple'];
 
 // ---------- DAILY ----------
 async function daily(slot) {
   const evening = /ВЕЧЕР/i.test(slot || '');
-  const [glob, coins, top100, fng, cal] = await Promise.all([
+  const [glob, coins, top100, fng, cal, news] = await Promise.all([
     getJSON(`${CG}/global`),
     getJSON(`${CG}/coins/markets?vs_currency=usd&ids=${TOP.join(',')}&sparkline=true&price_change_percentage=24h`),
     getJSON(`${CG}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true`),
     getJSON('https://api.alternative.me/fng/?limit=31'),
     Promise.all([getJSON('https://nfs.faireconomy.media/ff_calendar_thisweek.json').catch(() => []), evening ? getJSON('https://nfs.faireconomy.media/ff_calendar_nextweek.json').catch(() => []) : []]).then(([a, b]) => [...(a || []), ...(b || [])]),
+    channelHeadlines(evening ? 12 : 14, 3),
   ]);
   const g = glob.data;
   // 7d market-cap & dominance curves approximated from top-100 sparklines (price * circulating supply)
@@ -55,7 +76,7 @@ async function daily(slot) {
     vol: g.total_volume.usd,
     coins: coins.map(c => ({ sym: c.symbol.toUpperCase(), id: c.id, price: c.current_price, chg: c.price_change_percentage_24h, spark: thin(c.sparkline_in_7d.price.slice(-48), 24) })),
     fng: { now: f[0], label: fngLabel(f[0]), yesterday: f[1], week: f[7], month: f[30] },
-    events: todaysEvents(cal, evening ? 1 : 0), eventsTomorrow: evening,
+    events: todaysEvents(cal, evening ? 1 : 0), eventsTomorrow: evening, news,
   };
 }
 

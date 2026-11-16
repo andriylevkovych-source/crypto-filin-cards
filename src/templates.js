@@ -37,7 +37,7 @@ function gauge(val) {
   let s = '';
   seg.forEach(([c, a, b]) => { const p1 = pt(a + .8, R), p2 = pt(b - .8, R); s += `<path d="M${p1} A${R} ${R} 0 0 1 ${p2}" stroke="${c}" stroke-width="22" fill="none" stroke-linecap="round" opacity="${val >= a && (val < b || b === 100) ? 1 : .35}"/>`; });
   const n = pt(val, R);
-  return `<svg width="330" height="190" style="margin-top:18px">${s}<circle cx="${n[0]}" cy="${n[1]}" r="15" fill="#0A0A0D" stroke="#F3F1EC" stroke-width="5"/></svg>`;
+  return `<svg width="330" height="190" viewBox="0 0 330 190" style="margin-top:18px">${s}<circle cx="${n[0]}" cy="${n[1]}" r="15" fill="#0A0A0D" stroke="#F3F1EC" stroke-width="5"/></svg>`;
 }
 function niceStep(range, ticks = 5) { const raw = range / ticks, p = 10 ** Math.floor(Math.log10(raw)); return [1, 2, 2.5, 5, 10].map(m => m * p).find(s => s >= raw); }
 // vertical diverging bars (ETF)
@@ -107,40 +107,63 @@ const doc = (body, extra = '') => `<!doctype html><html><head><meta charset="utf
 const COIN = { BTC: ['#F7931A', '₿', 'Bitcoin'], ETH: ['#8EA2FF', 'Ξ', 'Ethereum'], SOL: ['linear-gradient(135deg,#9945FF,#14F195)', 'S', 'Solana'], BNB: ['#F3BA2F', 'B', 'BNB'], XRP: ['#E6E6E6', 'X', 'XRP'] };
 function daily(d, slot = 'УТРО') {
   const k = kyivParts();
-  const ev = d.events.length ? d.events.map(e => `<div class="e"><div class="t">${e.time}</div><div>${esc(e.title)}</div><div class="imp ${e.high ? 'h' : ''}">● ${e.high ? 'ВАЖНО' : 'СРЕДНЕ'}</div></div>`).join('')
-    : `<div class="e"><div class="t">—</div><div style="color:var(--muted)">Важной макростатистики США ${d.eventsTomorrow ? 'завтра' : 'сегодня'} нет</div><div></div></div>`;
-  const rows = d.coins.map((c, i) => { const [bg, g, name] = COIN[c.sym] || ['#888', c.sym[0], c.sym]; return `<div class="row"><div class="coin" style="background:${bg}">${g}</div><div class="n"><b>${name}</b><small>${c.sym}</small></div><div class="p">${price(c.price)}</div><div>${chg(c.chg)}</div>${spark(c.spark, 96, 40, c.chg >= 0, 'c' + i)}</div>`; }).join('');
-  const fc = v => v < 45 ? 'dn' : v > 55 ? 'up' : '';
-  return doc(`<div id="card" class="page" style="width:1080px;padding:48px">
+  const evening = /ВЕЧЕР/i.test(slot);
+  const capC = d.capChg >= 0 ? 'up' : 'dn';
+  const tiles = d.coins.map(c => { const [bg, g, name] = COIN[c.sym] || ['#888', c.sym[0], c.sym]; const up = c.chg >= 0;
+    return `<div class="ct ${up ? 'u' : 'd'}"><div class="ch"><div class="coin" style="background:${bg}">${g}</div><b>${c.sym}</b></div><div class="cp">${price(c.price)}</div>${chg(c.chg)}</div>`; }).join('');
+  const fl = v => v < 25 ? 'ЭКСТР. СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'ЭКСТР. ЖАДНОСТЬ';
+  const fc = d.fng.now < 45 ? 'dn' : d.fng.now > 55 ? 'up' : '';
+  const ev = (d.events || []).slice(0, 3).map(e => `<li><span class="tm">${e.time}</span>${esc(e.title)}${e.high ? ' <i class="hi">●</i>' : ''}</li>`);
+  const nw = (d.news || []).slice(0, evening ? 3 : 2).map(t => `<li class="nw">${esc(t)}</li>`);
+  const list = [...nw, ...ev];
+  if (!ev.length) list.push(`<li class="mut">Важной статистики США ${d.eventsTomorrow ? 'завтра' : 'сегодня'} нет</li>`);
+  return doc(`<div id="card" class="sq">
+ <div class="bgimg"></div><div class="shade"></div>
+ <div class="in">
  <div class="hdr">${brand}<div class="pill"><b>${k.day} ${MON[k.mon]} ${k.year}</b><span>${DOW[k.wd]} · ${slot}</span></div></div>
- <div class="kpis">
-  <div class="card kpi"><div class="lbl">Капитализация</div><div class="v">${big(d.cap)}</div>${chg(d.capChg)}${spark(d.capCurve, 270, 46, d.capChg >= 0, 'k1')}</div>
-  <div class="card kpi"><div class="lbl">Доминация BTC</div><div class="v">${grp(d.dom, 1)}%</div>${chg(d.domChg, ' п.п.', 2)}${spark(d.domCurve, 270, 46, d.domChg >= 0, 'k2')}</div>
-  <div class="card kpi"><div class="lbl">Объём за 24 ч</div><div class="v">${big(d.vol)}</div><span class="chg" style="background:rgba(247,166,0,.12);color:var(--or2)">${grp(d.vol / d.cap * 100, 1)}% от капитализации</span><div class="vnote">оборот спота и деривативов по данным CoinGecko</div></div>
+ <div class="k3">
+  <div class="g"><div class="lbl">Капитализация</div><div class="kv">${big(d.cap)}</div>${chg(d.capChg)}</div>
+  <div class="g"><div class="lbl">Доминация BTC</div><div class="kv">${grp(d.dom, 1)}%</div>${chg(d.domChg, ' п.п.', 2)}</div>
+  <div class="g"><div class="lbl">Объём за 24 ч</div><div class="kv">${big(d.vol)}</div><span class="chg" style="background:rgba(247,166,0,.15);color:var(--or2)">${grp(d.vol / d.cap * 100, 1)}% от капы</span></div>
  </div>
- <div class="mid">
-  <div class="card coins">${rows}</div>
-  <div class="card fg"><div class="lbl" style="align-self:flex-start">Страх и жадность</div>${gauge(d.fng.now)}<div class="big">${d.fng.now}</div><div class="st ${fc(d.fng.now)}">${d.fng.label}</div>
-   <div class="hist"><div><b class="${fc(d.fng.yesterday)}">${d.fng.yesterday}</b><small>вчера</small></div><div><b class="${fc(d.fng.week)}">${d.fng.week}</b><small>неделя</small></div><div><b class="${fc(d.fng.month)}">${d.fng.month}</b><small>месяц</small></div></div></div>
+ <div class="c5">${tiles}</div>
+ <div class="bot">
+  <div class="owl"><img src="${A('owl-hoodie.png')}"></div>
+  <div class="rc">
+   <div class="g fg2"><div><div class="lbl">Страх и жадность</div><div class="fv"><b>${d.fng.now}</b><small>/100</small></div><div class="fs ${fc}">${fl(d.fng.now)}</div><div class="fh">вчера ${d.fng.yesterday} · неделя ${d.fng.week}</div></div>${gauge(d.fng.now)}</div>
+   <div class="g nb"><h3><i></i>${evening ? 'Главное за день и завтра' : 'Новости и события'}</h3><ul>${list.join('')}</ul></div>
+  </div>
  </div>
- <div class="card ev"><h3><i></i>${d.eventsTomorrow ? 'Завтра на радаре' : 'Сегодня на радаре'}</h3>${ev}</div>
- <div class="foot" style="margin-top:22px"><span>Данные: CoinGecko · alternative.me · ForexFactory</span><span><b>@Filin1Radar</b></span></div>
+ <div class="foot2"><span>Данные: CoinGecko · alternative.me · ForexFactory · ${String(k.hour).padStart(2, '0')}:00 Киев</span><b>@Filin1Radar</b></div>
+ </div>
 </div>`, `
-.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:34px}.kpi{padding:22px 24px}
-.kpi .v{font-size:42px;font-weight:800;margin:10px 0 8px;letter-spacing:-1px;white-space:nowrap}.kpi svg{display:block;margin-top:10px}.vnote{font-size:15px;color:var(--muted);font-weight:600;margin-top:14px;line-height:1.35}
-.mid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;margin-top:18px}.coins{padding:10px 24px}
-.row{display:grid;grid-template-columns:52px minmax(0,1fr) 128px 104px 96px;align-items:center;gap:12px;height:76px;border-bottom:1px solid var(--line)}.row:last-child{border:0}
-.coin{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:20px;color:#111}
-.row .n b{font-size:22px;font-weight:800;display:block}.row .n small{color:var(--muted);font-size:14px}.row .p{font-size:23px;font-weight:800;text-align:right;white-space:nowrap}
-.fg{padding:24px;display:flex;flex-direction:column;align-items:center}.fg .big{font-size:76px;font-weight:900;margin-top:-62px;line-height:1}
-.fg .st{font-size:19px;font-weight:800;margin-top:6px;letter-spacing:1px;text-align:center}
-.fg .hist{display:flex;gap:10px;margin-top:18px;width:100%}.fg .hist div{flex:1;text-align:center;background:#0E0D11;border:1px solid var(--line);border-radius:12px;padding:10px 4px}
-.fg .hist b{display:block;font-size:22px}.fg .hist small{font-size:13px;color:var(--muted)}
-.ev{margin-top:18px;padding:22px 26px}.ev h3{font-size:22px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:10px}
-.ev h3 i{width:10px;height:22px;background:var(--or);border-radius:3px;display:inline-block}
-.e{display:grid;grid-template-columns:96px 1fr auto;gap:16px;align-items:center;padding:13px 0;border-top:1px solid var(--line);font-size:20px;font-weight:600}
-.t{background:rgba(247,166,0,.14);color:var(--or2);border-radius:10px;text-align:center;padding:7px 0;font-weight:800;font-size:17px}
-.imp{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:1px}.imp.h{color:var(--rd)}`);
+.sq{position:relative;width:1080px;height:1080px;overflow:hidden;background:#0A0A0D}
+.bgimg{position:absolute;inset:-40px;background:url(${A('owl-hoodie.png')}) center/cover;filter:blur(22px) brightness(.55) saturate(1.3)}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,8,10,.86) 0%,rgba(8,8,10,.62) 48%,rgba(8,8,10,.35) 100%)}
+.in{position:relative;padding:40px 40px 0}
+.g{background:rgba(14,13,17,.78);border:1.5px solid rgba(247,166,0,.55);border-radius:20px;box-shadow:0 0 22px rgba(247,166,0,.18),inset 0 0 0 1px rgba(255,255,255,.03);backdrop-filter:blur(6px)}
+.k3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:26px}.k3 .g{padding:16px 20px}
+.kv{font-size:40px;font-weight:900;letter-spacing:-1px;margin:6px 0 6px;white-space:nowrap}
+.c5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:14px}
+.ct{background:rgba(14,13,17,.8);border-radius:18px;padding:14px 12px;text-align:center;border:1.5px solid rgba(255,255,255,.12)}
+.ct.u{border-color:rgba(47,210,122,.6);box-shadow:0 0 18px rgba(47,210,122,.18)}.ct.d{border-color:rgba(255,77,79,.6);box-shadow:0 0 18px rgba(255,77,79,.18)}
+.ch{display:flex;align-items:center;justify-content:center;gap:8px}.ch b{font-size:20px;font-weight:800}
+.coin{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:16px;color:#111}
+.cp{font-size:24px;font-weight:900;margin:8px 0 8px;white-space:nowrap}.ct .chg{font-size:16px}
+.bot{display:grid;grid-template-columns:410px 1fr;gap:16px;margin-top:16px;height:560px}
+.owl{position:relative;border-radius:22px;overflow:hidden;border:1.5px solid rgba(247,166,0,.45);box-shadow:0 0 30px rgba(247,166,0,.25)}
+.owl img{position:absolute;height:100%;left:50%;transform:translateX(-47%)}
+.rc{display:flex;flex-direction:column;gap:14px;min-width:0}
+.fg2{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;height:178px}.fg2 svg{width:230px;height:132px;margin-top:0}
+.fv b{font-size:58px;font-weight:900;line-height:1}.fv small{font-size:20px;color:var(--muted);font-weight:700}
+.fs{font-size:17px;font-weight:900;letter-spacing:1px;margin-top:4px}.fh{font-size:14px;color:var(--muted);font-weight:600;margin-top:6px}
+.nb{flex:1;padding:16px 20px;overflow:hidden}.nb h3{font-size:20px;font-weight:900;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.nb h3 i{width:9px;height:20px;background:var(--or);border-radius:3px}
+.nb ul{list-style:none}.nb li{font-size:17px;font-weight:700;line-height:1.3;padding:9px 0 9px 22px;border-top:1px solid rgba(255,255,255,.08);position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nb li:before{content:'';position:absolute;left:2px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--or)}
+.nb li.nw{color:#F3F1EC}.nb li.mut{color:var(--muted)}
+.tm{color:var(--or2);font-weight:900;margin-right:8px}.hi{color:var(--rd);font-style:normal;font-size:13px}
+.foot2{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:14px;color:#B9B3A8;font-weight:600}.foot2 b{color:var(--or)}`);
 }
 
 // ---------- ETF ----------
