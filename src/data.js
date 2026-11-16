@@ -108,7 +108,7 @@ const TITLE_RU = [
   [/Non-Farm Employment Change/i, 'Занятость вне с/х (NFP)'], [/Unemployment Rate/i, 'Уровень безработицы'],
   [/Unemployment Claims/i, 'Заявки на пособие по безработице'], [/Federal Funds Rate/i, 'Решение ФРС по ставке'],
   [/FOMC Statement/i, 'Заявление FOMC'], [/FOMC Press Conference/i, 'Пресс-конференция ФРС'], [/FOMC Meeting Minutes/i, 'Протокол FOMC'],
-  [/Advance GDP|GDP q\/q/i, 'ВВП США'], [/Retail Sales/i, 'Розничные продажи'], [/ISM Manufacturing PMI/i, 'ISM в промышленности'],
+  [/Advance GDP|GDP q\/q/i, 'ВВП США'], [/Core Retail Sales/i, 'Базовые розничные продажи'], [/Retail Sales/i, 'Розничные продажи'], [/ISM Manufacturing PMI/i, 'ISM в промышленности'],
   [/ISM Services PMI/i, 'ISM в услугах'], [/JOLTS/i, 'Вакансии JOLTS'], [/Prelim UoM Consumer Sentiment/i, 'Потребдоверие Мичигана'],
   [/Fed Chair .* Speaks/i, 'Выступление главы ФРС'], [/ADP Non-Farm/i, 'Занятость ADP'], [/Treasury Currency Report/i, 'Отчёт Минфина по валютам'],
 ];
@@ -120,7 +120,7 @@ function todaysEvents(cal, dayOffset = 0) {
     .map(e => {
       const ru = TITLE_RU.find(([re]) => re.test(e.title));
       const t = new Date(e.date).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Kyiv', hour: '2-digit', minute: '2-digit' });
-      const fc = e.forecast ? ` — прогноз ${e.forecast}` : '';
+      const fc = e.forecast ? ` — прогноз ${String(e.forecast).replace('.', ',')}` : '';
       return { time: t, title: (ru ? ru[1] : e.title) + fc, high: e.impact === 'High' };
     })
     .sort((a, b) => b.high - a.high || a.time.localeCompare(b.time))

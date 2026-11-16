@@ -123,7 +123,7 @@ function dailyOwl(d, slot = 'УТРО') {
   const fl = v => v < 25 ? 'СИЛЬНЫЙ СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'СИЛЬНАЯ ЖАДНОСТЬ';
   const fcol = d.fng.now < 45 ? '#FF4D4F' : d.fng.now > 55 ? '#2FE07A' : '#E8E2D6';
   // gauge arc (red → yellow → green) with knob
-  const cx = 905, cy = 712, R = 118, a = v => Math.PI * (1 - v / 100), P = v => [cx + R * Math.cos(a(v)), cy - R * Math.sin(a(v))];
+  const cx = 905, cy = 716, R = 124, a = v => Math.PI * (1 - v / 100), P = v => [cx + R * Math.cos(a(v)), cy - R * Math.sin(a(v))];
   const [kx, ky] = P(Math.max(2, Math.min(98, d.fng.now)));
   const ev = (d.events || []).slice(0, 3).map(e => `<li><span>${d.eventsTomorrow ? 'Завтра' : 'Сегодня'} ${e.time} Киев — ${esc(e.title)}</span></li>`);
   const nw = (d.news || []).slice(0, evening ? 3 : 2).map(t => `<li><span>${esc(t)}</span></li>`);
@@ -157,8 +157,8 @@ function dailyOwl(d, slot = 'УТРО') {
 .pl{top:486px;text-align:center}.pl span{display:inline-block;font-size:34px;font-weight:900;padding:2px 18px;border-radius:10px;border:2.5px solid}
 .pl.d span{color:#FF4D4F;border-color:#C62828;background:rgba(110,12,12,.75)}.pl.u span{color:#3DF08A;border-color:#1E9E52;background:rgba(12,90,40,.75)}
 .gz{left:0;top:0}
-.gv{left:${cx - 110}px;width:220px;top:${cy - 92}px;text-align:center}.gv b{font-size:58px;font-weight:900;line-height:1}.gv small{font-size:28px;font-weight:800;color:#ddd}
-.gv i{display:block;font-style:normal;font-size:25px;margin-top:2px;font-weight:900;line-height:1.1}
+.gv{left:${cx - 100}px;width:200px;top:${cy - 104}px;text-align:center}.gv b{font-size:58px;font-weight:900;line-height:1}.gv small{font-size:28px;font-weight:800;color:#ddd}
+.gv i{display:block;font-style:normal;font-size:22px;margin-top:4px;font-weight:900;line-height:1.1}
 .nl{left:780px;top:828px;width:470px;list-style:none}
 .nl li{position:relative;padding:9px 0 9px 44px;border-bottom:1.5px solid rgba(255,255,255,.14);color:#F3F1EC}.nl li span{font-size:25px;font-weight:700;line-height:1.16;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .nl li:last-child{border:0}.nl li:before{content:'';position:absolute;left:8px;top:19px;width:20px;height:20px;border-radius:50%;background:#F7A600}
