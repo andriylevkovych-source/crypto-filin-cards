@@ -186,8 +186,25 @@ async function liq() {
   return { rows, hours, biggest, total, long: rows.reduce((a, r) => a + r.long, 0), short: rows.reduce((a, r) => a + r.short, 0) };
 }
 
+// ---------- WEEKLY FUTURES GAP (Yahoo Finance chart API, no key) ----------
+async function futGap(sym) {
+  const j = await getJSON(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=5d&interval=15m`);
+  const r = j.chart.result[0], ts = r.timestamp, q = r.indicators.quote[0];
+  const bars = ts.map((t, i) => ({ t, o: q.open[i], c: q.close[i] })).filter(b => b.c != null && b.o != null);
+  let gi = -1, gmax = 0;
+  for (let i = 1; i < bars.length; i++) { const d = bars[i].t - bars[i - 1].t; if (d > gmax) { gmax = d; gi = i; } }
+  if (gi < 1 || gmax < 24 * 3600) throw new Error(sym + ': no weekend gap found');
+  const fri = bars[gi - 1].c, open = bars[gi].o, last = bars.at(-1).c;
+  return { sym, fri, open, last, gap: (open / fri - 1) * 100, now: (last / fri - 1) * 100,
+    before: bars.slice(Math.max(0, gi - 28), gi).map(b => b.c), after: bars.slice(gi).map(b => b.c), openTs: bars[gi].t };
+}
+async function gap() {
+  const [es, nq] = await Promise.all([futGap('ES=F'), futGap('NQ=F')]);
+  return { es, nq };
+}
+
 function thin(a, n) { if (a.length <= n) return a; const s = (a.length - 1) / (n - 1); return Array.from({ length: n }, (_, i) => a[Math.round(i * s)]); }
 function fngLabel(v) { return v < 25 ? 'ЭКСТРЕМАЛЬНЫЙ СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'ЭКСТРЕМАЛЬНАЯ ЖАДНОСТЬ'; }
 function kyivDate(d) { return d.toLocaleDateString('en-CA', { timeZone: 'Europe/Kyiv' }); }
 
-module.exports = { daily, etf, deriv, weekly, liq, fngLabel };
+module.exports = { daily, etf, deriv, weekly, liq, gap, fngLabel };

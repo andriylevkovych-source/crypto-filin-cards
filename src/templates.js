@@ -249,4 +249,39 @@ function liq(d) {
 .nums{display:flex;justify-content:space-between;font-size:17px;font-weight:800;margin-top:6px}`);
 }
 
-module.exports = { daily, etf, deriv, weekly, liq };
+// ---------- FUTURES WEEKLY GAP ----------
+function gapChart(es, W, H) {
+  const pad = { l: 96, r: 30, t: 30, b: 40 };
+  const all = [...es.before, es.fri, es.open, ...es.after];
+  let mn = Math.min(...all), mx = Math.max(...all); const m = (mx - mn) * .15 || 5; mn -= m; mx += m;
+  const n = es.before.length + es.after.length + 3; // 3 empty slots mark the weekend
+  const x = i => pad.l + i / (n - 1) * (W - pad.l - pad.r), y = v => pad.t + (mx - v) / (mx - mn) * (H - pad.t - pad.b);
+  const step = niceStep(mx - mn, 4);
+  let s = '';
+  for (let t = Math.ceil(mn / step) * step; t <= mx; t += step) s += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(t)}" y2="${y(t)}" stroke="#2A2620"/><text x="${pad.l - 14}" y="${y(t) + 6}" text-anchor="end" class="ax">${grp(t)}</text>`;
+  const up = es.open >= es.fri, col = up ? '#2FD27A' : '#FF4D4F';
+  const bx = es.before.length - 1, ax = es.before.length + 3;
+  s += `<rect x="${x(bx)}" y="${Math.min(y(es.fri), y(es.open))}" width="${x(ax) - x(bx)}" height="${Math.max(3, Math.abs(y(es.fri) - y(es.open)))}" fill="${col}" opacity=".22"/>`;
+  s += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(es.fri)}" y2="${y(es.fri)}" stroke="#F7A600" stroke-width="2" stroke-dasharray="8 7"/>`;
+  s += `<text x="${W - pad.r}" y="${y(es.fri) + (up ? 26 : -12)}" text-anchor="end" style="fill:#F7A600;font-size:17px;font-weight:700">закрытие пятницы ${grp(es.fri)}</text>`;
+  const line = (arr, off) => arr.map((v, i) => `${i ? 'L' : 'M'}${x(off + i)},${y(v)}`).join('');
+  s += `<path d="${line(es.before, 0)}" fill="none" stroke="#9A958C" stroke-width="3"/>`;
+  s += `<path d="${line(es.after, ax)}" fill="none" stroke="${col}" stroke-width="3.5"/>`;
+  s += `<circle cx="${x(ax)}" cy="${y(es.open)}" r="7" fill="${col}"/>`;
+  s += `<text x="${(x(bx) + x(ax)) / 2}" y="${H - 12}" text-anchor="middle" class="ax">выходные</text><text x="${x(0)}" y="${H - 12}" class="ax">пятница</text><text x="${W - pad.r}" y="${H - 12}" text-anchor="end" class="ax">открытие недели</text>`;
+  return `<svg width="${W}" height="${H}">${s}</svg>`;
+}
+function gap(d) {
+  const sg = v => `${v >= 0 ? '+' : '−'}${grp(Math.abs(v), 2)}%`;
+  const es = d.es, nq = d.nq, up = es.gap >= 0;
+  const k = kyivParts();
+  return doc(`<div id="card" class="page wide">
+ <div class="hdr">${brand}<div class="pill"><b>ОТКРЫТИЕ НЕДЕЛИ</b><span>${k.day} ${MON[k.mon]} ${k.year}</span></div></div>
+ <div class="ttl"><div><h1 style="font-size:38px;white-space:nowrap">S&amp;P 500: ГЭП ${up ? 'ВВЕРХ' : 'ВНИЗ'} ${sg(es.gap)}</h1><p>Фьючерс E-mini, свечи 15 мин · пятница → открытие недели</p></div>
+  <div class="sum"><div class="card"><div class="lbl">S&amp;P 500 сейчас</div><b class="${es.now >= 0 ? 'up' : 'dn'}">${sg(es.now)}</b></div><div class="card"><div class="lbl">Nasdaq 100 гэп</div><b class="${nq.gap >= 0 ? 'up' : 'dn'}">${sg(nq.gap)}</b></div></div></div>
+ <div class="card" style="margin-top:20px;padding:14px 18px">${gapChart(es, 1144, 350)}</div>
+ <div class="foot wfoot"><span>Данные: Yahoo Finance · ES=F, NQ=F · пятница ${grp(es.fri)} → открытие ${grp(es.open)}</span><span><b>@Filin1Radar</b></span></div>
+</div>`);
+}
+
+module.exports = { daily, etf, deriv, weekly, liq, gap };

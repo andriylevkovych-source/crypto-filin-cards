@@ -7,10 +7,11 @@ on:
     - cron: '30 10 * * *'    # 12:30 Kyiv  -> open interest & funding
     - cron: '0 15 * * 0'     # 17:00 Kyiv Sunday -> weekly recap
     - cron: '15 7 * * *'     # 09:15 Kyiv -> 24h liquidations (OKX)
+    - cron: '10 23 * * 0'    # Mon 01:10 Kyiv -> S&P 500 futures weekly open gap
   workflow_dispatch:
     inputs:
       kind:
-        description: 'daily | etf | deriv | weekly | liq | all'
+        description: 'daily | etf | deriv | weekly | liq | gap | all'
         default: 'all'
       slot:
         description: 'Daily card label (УТРО / ВЕЧЕР)'
@@ -38,6 +39,7 @@ jobs:
             '30 10 * * *')  echo "kind=deriv"  >> $GITHUB_OUTPUT ;;
             '0 15 * * 0')   echo "kind=weekly" >> $GITHUB_OUTPUT ;;
             '15 7 * * *')   echo "kind=liq"    >> $GITHUB_OUTPUT ;;
+            '10 23 * * 0')  echo "kind=gap"    >> $GITHUB_OUTPUT ;;
             *)              echo "kind=${{ inputs.kind || 'all' }}" >> $GITHUB_OUTPUT; echo "slot=${{ inputs.slot || 'УТРО' }}" >> $GITHUB_OUTPUT ;;
           esac
       - run: node src/render.js ${{ steps.pick.outputs.kind }} --slot "${{ steps.pick.outputs.slot || 'УТРО' }}"
