@@ -1,13 +1,7 @@
 name: render-cards
 on:
-  schedule:
-    - cron: '45 5 * * *'     # 07:45 Kyiv  -> daily market card for the 09:00 morning digest
-    - cron: '10 19 * * *'    # 21:10 Kyiv  -> evening market card for the 22:00 evening digest
-    - cron: '40 5 * * 2-6'   # 07:40 Kyiv  -> BTC ETF flows (previous US session)
-    - cron: '30 10 * * *'    # 12:30 Kyiv  -> open interest & funding
-    - cron: '0 15 * * 0'     # 17:00 Kyiv Sunday -> weekly recap
-    - cron: '15 7 * * *'     # 09:15 Kyiv -> 24h liquidations (OKX)
-    - cron: '10 23 * * 0'    # Mon 01:10 Kyiv -> S&P 500 futures weekly open gap
+  # Runs are triggered by Make.com (scenario «запуск картинок GitHub») at exact times;
+  # GitHub's own cron was delayed by hours, so it is no longer used.
   workflow_dispatch:
     inputs:
       kind:
