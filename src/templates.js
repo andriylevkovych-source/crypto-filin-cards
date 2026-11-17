@@ -162,7 +162,7 @@ function dailyOwl(d, slot = 'УТРО') {
 .kv{top:226px;font-family:MS;font-size:76px;font-weight:800;letter-spacing:-2px;line-height:1;text-shadow:0 3px 10px rgba(0,0,0,.65);white-space:nowrap}.kv.dn{color:#FF3B30}.kv.up{color:#2FE07A}
 .cp{top:398px;text-align:center;font-family:MS;font-size:40px;font-weight:800;letter-spacing:-1.5px;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .pl{top:458px;height:47px;line-height:43px;text-align:center;font-family:MS;font-size:27px;font-weight:800;letter-spacing:-.5px;border-radius:9px;border:2.5px solid;box-sizing:border-box}
-.pl.d{color:#FF4D4F;border-color:#D32F2F;background:#3a0b0d}.pl.u{color:#3DF08A;border-color:#22A55A;background:#0b3a1d}
+.pl.d{color:#FF5A5A;border-color:#E53935;background:linear-gradient(180deg,rgba(150,18,22,.95),rgba(70,6,8,.95));box-shadow:0 0 14px rgba(255,50,50,.45),inset 0 0 12px rgba(255,80,80,.35)}.pl.u{color:#45F590;border-color:#25B864;background:linear-gradient(180deg,rgba(18,120,58,.95),rgba(6,58,26,.95));box-shadow:0 0 14px rgba(50,230,120,.4),inset 0 0 12px rgba(80,255,150,.3)}
 .kn{left:0;top:0}
 .gl{top:350px;height:163px;border-radius:0 0 15px 15px;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 38%);background:radial-gradient(ellipse 75% 70% at 50% 50%,rgba(var(--g),.42),rgba(var(--g),.16) 55%,rgba(var(--g),0) 85%),linear-gradient(180deg,rgba(var(--g),0),rgba(var(--g),.22) 70%,rgba(var(--g),.32));mix-blend-mode:screen}
 .gv{left:${cx - 100}px;width:200px;top:${cy - 92}px;text-align:center}.gv b{font-family:MS;font-size:54px;font-weight:800;letter-spacing:-1px;line-height:1}.gv small{font-size:26px;font-weight:800;color:#ddd}
