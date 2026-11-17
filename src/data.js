@@ -212,9 +212,11 @@ async function liqCoinalyze() {
     if (!m.is_perpetual || !syms.includes(String(m.base_asset).toUpperCase())) continue;
     if (!major.test(exName[m.exchange] || '')) continue;
     if (!/^(USDT|USD|USDC)$/i.test(m.quote_asset || '')) continue;
-    (pick[m.base_asset.toUpperCase()] ||= []).push(m.symbol);
+    const b = m.base_asset.toUpperCase(), key = b + '|' + m.exchange, rank = /^USDT$/i.test(m.quote_asset) ? 0 : /^USD$/i.test(m.quote_asset) ? 1 : 2;
+    if (!pick[key] || rank < pick[key].rank) pick[key] = { b, sym: m.symbol, rank };
   }
-  const all = Object.entries(pick).flatMap(([b, list]) => list.slice(0, 6).map(sym => [b, sym]));
+  // one market per exchange per coin (USDT preferred), so every major exchange is counted once
+  const all = Object.values(pick).map(x => [x.b, x.sym]);
   if (!all.length) throw new Error('coinalyze: no markets');
   const to = Math.floor(Date.now() / 1000), from = to - 24 * 3600;
   const bySym = Object.fromEntries(all.map(([b, s]) => [s, b]));
