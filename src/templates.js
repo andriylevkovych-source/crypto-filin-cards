@@ -143,6 +143,12 @@ function dailyOwl(d, slot = 'УТРО') {
  ${list}
  <div class="src">Данные: CoinGecko · ${dd}.${String(k.mon + 1).padStart(2, '0')}.${k.year}, ${String(k.hour).padStart(2, '0')}:00 Киев <i>•</i> @Filin1Radar</div>
 </div>`, `
+@font-face{font-family:MS;src:url(${A('fonts/MS-cyr-800.woff2')});font-weight:800;unicode-range:U+0400-04FF}
+@font-face{font-family:MS;src:url(${A('fonts/MS-lat-800.woff2')});font-weight:800}
+@font-face{font-family:MS;src:url(${A('fonts/MS-cyr-700.woff2')});font-weight:700;unicode-range:U+0400-04FF}
+@font-face{font-family:MS;src:url(${A('fonts/MS-lat-700.woff2')});font-weight:700}
+@font-face{font-family:RC;src:url(${A('fonts/RC-cyr-500.woff2')});font-weight:500;unicode-range:U+0400-04FF}
+@font-face{font-family:RC;src:url(${A('fonts/RC-lat-500.woff2')});font-weight:500}
 @font-face{font-family:RC;src:url(${A('fonts/RC-cyr-700.woff2')});font-weight:700;unicode-range:U+0400-04FF}
 @font-face{font-family:RC;src:url(${A('fonts/RC-lat-700.woff2')});font-weight:700}
 @font-face{font-family:RC;src:url(${A('fonts/RC-cyr-800.woff2')});font-weight:800;unicode-range:U+0400-04FF}
@@ -152,14 +158,14 @@ function dailyOwl(d, slot = 'УТРО') {
 .ow{position:relative;width:1254px;height:1254px;background:url(${A('daily-owl-base.jpg')}) 0 0/1254px 1254px;font-family:RC,sans-serif;color:#fff}
 .ow>*{position:absolute}
 .dt{left:768px;top:50px}.dt b{display:block;font-size:40px;font-weight:800;line-height:1.05}.dt span{display:block;font-size:37px;font-weight:900;color:#F7A600;line-height:1.08}
-.kv{top:230px;font-size:80px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 3px 10px rgba(0,0,0,.65);white-space:nowrap}.kv.dn{color:#FF3B30}.kv.up{color:#2FE07A}
-.cp{top:392px;text-align:center;font-size:52px;font-weight:900;letter-spacing:0;-webkit-text-stroke:1.6px #fff;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.6)}
-.pl{top:458px;height:47px;line-height:43px;text-align:center;font-size:32px;font-weight:900;-webkit-text-stroke:.7px currentColor;border-radius:9px;border:2.5px solid;box-sizing:border-box}
+.kv{top:226px;font-family:MS;font-size:76px;font-weight:800;letter-spacing:-2px;line-height:1;text-shadow:0 3px 10px rgba(0,0,0,.65);white-space:nowrap}.kv.dn{color:#FF3B30}.kv.up{color:#2FE07A}
+.cp{top:398px;text-align:center;font-family:MS;font-size:40px;font-weight:800;letter-spacing:-1.5px;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.pl{top:458px;height:47px;line-height:43px;text-align:center;font-family:MS;font-size:27px;font-weight:800;letter-spacing:-.5px;border-radius:9px;border:2.5px solid;box-sizing:border-box}
 .pl.d{color:#FF4D4F;border-color:#D32F2F;background:#3a0b0d}.pl.u{color:#3DF08A;border-color:#22A55A;background:#0b3a1d}
 .kn{left:0;top:0}
-.gv{left:${cx - 100}px;width:200px;top:${cy - 92}px;text-align:center}.gv b{font-size:58px;font-weight:900;line-height:1}.gv small{font-size:26px;font-weight:800;color:#ddd}
+.gv{left:${cx - 100}px;width:200px;top:${cy - 92}px;text-align:center}.gv b{font-family:MS;font-size:54px;font-weight:800;letter-spacing:-1px;line-height:1}.gv small{font-size:26px;font-weight:800;color:#ddd}
 .gv i{display:block;font-style:normal;font-size:23px;font-weight:900;margin-top:4px}
-.nr{left:797px;width:420px;height:72px;display:flex;align-items:center;font-size:24px;font-weight:700;line-height:1.14;color:#F3F1EC}
+.nr{left:797px;width:420px;height:72px;display:flex;align-items:center;font-size:25px;font-weight:500;line-height:1.14;color:#F3F1EC}
 .hide{left:757px;width:30px;height:30px;border-radius:50%;background:#0c0c0e}
 .src{right:24px;top:1216px;font-size:20px;font-weight:700;color:#E8E2D6;text-shadow:0 1px 4px #000,0 0 8px #000}.src i{color:#F7A600;font-style:normal;margin:0 6px}`);
 }
