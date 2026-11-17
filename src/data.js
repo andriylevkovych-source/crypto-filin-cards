@@ -191,7 +191,61 @@ async function weekly() {
 
 // ---------- LIQUIDATIONS (OKX public API, no key) ----------
 const OKX = 'https://www.okx.com/api/v5/public';
+// Aggregated liquidations across major exchanges via Coinalyze (free API key in COINALYZE_KEY)
+const CZ = 'https://api.coinalyze.net/v1';
+async function czGet(path) {
+  const r = await fetch(CZ + path, { headers: { api_key: process.env.COINALYZE_KEY, Accept: 'application/json' } });
+  if (!r.ok) throw new Error('coinalyze ' + r.status + ' ' + path.split('?')[0]);
+  return r.json();
+}
+async function liqCoinalyze() {
+  const syms = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE'];
+  const [exchanges, markets] = await Promise.all([czGet('/exchanges'), czGet('/future-markets')]);
+  const major = /binance|bybit|okx|bitget|hyperliquid|gate|deribit|bitmex|coinbase|kraken|htx|huobi/i;
+  const exName = Object.fromEntries(exchanges.map(e => [e.code, e.name]));
+  const pick = {};
+  for (const m of markets) {
+    if (!m.is_perpetual || !syms.includes(String(m.base_asset).toUpperCase())) continue;
+    if (!major.test(exName[m.exchange] || '')) continue;
+    if (!/^(USDT|USD|USDC)$/i.test(m.quote_asset || '')) continue;
+    (pick[m.base_asset.toUpperCase()] ||= []).push(m.symbol);
+  }
+  const all = Object.entries(pick).flatMap(([b, list]) => list.slice(0, 12).map(sym => [b, sym]));
+  if (!all.length) throw new Error('coinalyze: no markets');
+  const to = Math.floor(Date.now() / 1000), from = to - 24 * 3600;
+  const bySym = Object.fromEntries(all.map(([b, s]) => [s, b]));
+  const hours = Array.from({ length: 24 }, () => ({ long: 0, short: 0 }));
+  const rows = Object.fromEntries(syms.map(s => [s, { sym: s, long: 0, short: 0 }]));
+  const exUsed = new Set();
+  for (let i = 0; i < all.length; i += 20) {
+    const chunk = all.slice(i, i + 20).map(x => x[1]);
+    const res = await czGet(`/liquidation-history?symbols=${encodeURIComponent(chunk.join(','))}&interval=1hour&from=${from}&to=${to}&convert_to_usd=true`);
+    for (const it of res || []) {
+      const b = bySym[it.symbol]; if (!b) continue;
+      for (const h of it.history || []) {
+        const l = +h.l || 0, sh = +h.s || 0; if (!l && !sh) continue;
+        rows[b].long += l; rows[b].short += sh;
+        const idx = 23 - Math.floor((to - h.t) / 3600); if (idx >= 0 && idx < 24) { hours[idx].long += l; hours[idx].short += sh; }
+        exUsed.add(exName[markets.find(m => m.symbol === it.symbol)?.exchange] || '');
+      }
+    }
+    await sleep(1600);
+  }
+  const R = syms.map(s => rows[s]);
+  const total = R.reduce((a, r) => a + r.long + r.short, 0);
+  if (!total) throw new Error('coinalyze: empty');
+  const maxH = hours.reduce((m, h, i) => (h.long + h.short > m.v ? { v: h.long + h.short, i } : m), { v: 0, i: 0 });
+  return { rows: R, hours, biggest: null, peakHour: maxH, total, long: R.reduce((a, r) => a + r.long, 0), short: R.reduce((a, r) => a + r.short, 0),
+    source: 'all', exchanges: [...exUsed].filter(Boolean) };
+}
 async function liq() {
+  if (process.env.COINALYZE_KEY) {
+    try { const d = await liqCoinalyze(); console.log('liq source: coinalyze', d.exchanges.join(',')); return d; }
+    catch (e) { console.error('coinalyze failed, falling back to OKX:', e.message); }
+  } else console.log('liq source: OKX (no COINALYZE_KEY)');
+  return liqOkx();
+}
+async function liqOkx() {
   const syms = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE'];
   const inst = await getJSON(`${OKX}/instruments?instType=SWAP`);
   const ctVal = Object.fromEntries((inst.data || []).map(i => [i.instId, +i.ctVal]));
@@ -226,7 +280,7 @@ async function liq() {
   }
   const total = rows.reduce((a, r) => a + r.long + r.short, 0);
   if (!total) throw new Error('OKX liquidations: empty');
-  return { rows, hours, biggest, total, long: rows.reduce((a, r) => a + r.long, 0), short: rows.reduce((a, r) => a + r.short, 0) };
+  return { rows, hours, biggest, total, long: rows.reduce((a, r) => a + r.long, 0), short: rows.reduce((a, r) => a + r.short, 0), source: 'okx' };
 }
 
 // ---------- WEEKLY FUTURES GAP (Yahoo Finance chart API, no key) ----------

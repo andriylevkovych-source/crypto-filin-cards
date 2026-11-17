@@ -305,14 +305,15 @@ function liq(d) {
   const mood = share >= 65 ? 'Выносило в основном лонги' : share <= 35 ? 'Выносило в основном шорты' : 'Ликвидации примерно поровну в обе стороны';
   const mx = Math.max(...d.rows.map(r => r.long + r.short)) || 1;
   const rows = d.rows.map(r => `<div class="lr"><div class="s">${r.sym}</div><div class="bar"><div class="l" style="width:${r.long / mx * 100}%"></div><div class="sh" style="width:${r.short / mx * 100}%"></div></div><div class="nums"><span class="dn">${mln(r.long)}</span><span class="up">${mln(r.short)}</span></div></div>`).join('');
-  const b = d.biggest ? `Крупнейшая: ${d.biggest.sym} ${d.biggest.side === 'long' ? 'лонг' : 'шорт'} на ${mln(d.biggest.usd)}` : '';
+  const ph = d.peakHour ? new Date(Date.now() - (23 - d.peakHour.i) * 3600e3).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Kyiv', hour: '2-digit' }) + ':00' : '';
+  const b = d.biggest ? `Крупнейшая: ${d.biggest.sym} ${d.biggest.side === 'long' ? 'лонг' : 'шорт'} на ${mln(d.biggest.usd)}` : (d.peakHour ? `Пик — около ${ph} (${mln(d.peakHour.v)} за час)` : '');
   return doc(`<div id="card" class="page wide">
  <div class="hdr">${brand}<div class="leg"><span><i style="background:var(--rd)"></i>Лонги</span><span><i style="background:var(--gr)"></i>Шорты</span></div></div>
  <div class="ttl"><div><h1>ЛИКВИДАЦИИ ЗА 24 ЧАСА</h1><p>${mood} · ${b}</p></div>
-  <div class="sum"><div class="card"><div class="lbl">Всего на OKX</div><b>${mln(d.total)}</b></div><div class="card"><div class="lbl">Лонги</div><b class="dn">${grp(share, 0)}%</b></div></div></div>
+  <div class="sum"><div class="card"><div class="lbl">${d.source === 'all' ? 'Всего по рынку' : 'Всего на OKX'}</div><b>${mln(d.total)}</b></div><div class="card"><div class="lbl">Лонги</div><b class="dn">${grp(share, 0)}%</b></div></div></div>
  <div class="lq"><div class="card ch"><div class="lbl">По часам, млн $ (шорты вверх, лонги вниз)</div>${liqChart(d.hours, 640, 380)}</div>
   <div class="card co"><div class="lbl">По монетам</div>${rows}</div></div>
- <div class="foot wfoot"><span>Данные: OKX (USDT-фьючерсы) · только одна биржа, по рынку в целом суммы в разы больше</span><span><b>@Filin1Radar</b></span></div>
+ <div class="foot wfoot"><span>${d.source === 'all' ? `Данные: Coinalyze · ${esc((d.exchanges || []).slice(0, 6).join(', ') || 'Binance, Bybit, OKX и др.')} — бессрочные фьючерсы` : 'Данные: OKX (USDT-фьючерсы) · только одна биржа, по рынку в целом суммы в разы больше'}</span><span><b>@Filin1Radar</b></span></div>
 </div>`, `.lq{display:grid;grid-template-columns:680px 1fr;gap:18px;margin-top:22px}.ch,.co{padding:18px 20px}.ch svg{display:block;margin-top:8px}
 .lr{display:grid;grid-template-columns:70px 1fr;grid-template-rows:auto auto;column-gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}.lr:last-child{border:0}
 .lr .s{grid-row:span 2;font-size:22px;font-weight:900;align-self:center}.bar{display:flex;gap:3px;height:14px}.bar div{border-radius:6px;min-width:3px}.bar .l{background:var(--rd)}.bar .sh{background:var(--gr)}

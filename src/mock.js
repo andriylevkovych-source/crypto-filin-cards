@@ -31,7 +31,7 @@ module.exports = {
     ],
   },
   liq: {
-    total: 182e6, long: 131e6, short: 51e6, biggest: { sym: 'BTC', usd: 4.2e6, side: 'long' },
+    total: 182e6, long: 131e6, short: 51e6, biggest: null, peakHour: { v: 31e6, i: 17 }, source: 'all', exchanges: ['Binance', 'Bybit', 'OKX', 'Bitget', 'Hyperliquid'],
     rows: [{ sym: 'BTC', long: 62e6, short: 21e6 }, { sym: 'ETH', long: 38e6, short: 16e6 }, { sym: 'SOL', long: 17e6, short: 7e6 }, { sym: 'XRP', long: 8e6, short: 4e6 }, { sym: 'DOGE', long: 6e6, short: 3e6 }],
     hours: Array.from({ length: 24 }, (_, i) => ({ long: (Math.sin(i) + 1.3) * 3e6 + (i === 17 ? 25e6 : 0), short: (Math.cos(i * 1.3) + 1.2) * 1.6e6 })),
   },

@@ -36,7 +36,9 @@ jobs:
             '10 23 * * 0')  echo "kind=gap"    >> $GITHUB_OUTPUT ;;
             *)              echo "kind=${{ inputs.kind || 'all' }}" >> $GITHUB_OUTPUT; echo "slot=${{ inputs.slot || 'УТРО' }}" >> $GITHUB_OUTPUT ;;
           esac
-      - run: node src/render.js ${{ steps.pick.outputs.kind }} --slot "${{ steps.pick.outputs.slot || 'УТРО' }}"
+      - env:
+          COINALYZE_KEY: ${{ secrets.COINALYZE_KEY }}
+        run: node src/render.js ${{ steps.pick.outputs.kind }} --slot "${{ steps.pick.outputs.slot || 'УТРО' }}"
       - name: Commit images
         run: |
           git config user.name "crypto-filin-bot"
