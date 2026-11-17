@@ -120,7 +120,7 @@ function dailyOwl(d, slot = 'УТРО') {
   const PL = [[40, 240], [290, 490], [538, 725], [775, 973], [1022, 1217]];
   const GL = ['247,147,26', '47,128,237', '20,200,190', '243,186,47', '210,210,215'];
   const coins = d.coins.slice(0, 5).map((c, i) => { const up = c.chg >= 0;
-    return `<div class="gl" style="left:${T[i][0] + 4}px;width:${T[i][1] - T[i][0] - 8}px;--g:${GL[i]}"></div><div class="cp" style="left:${T[i][0]}px;width:${T[i][1] - T[i][0]}px">${price(c.price)}</div>
+    return `<div class="gl" style="left:${T[i][0] + 5}px;width:${T[i][1] - T[i][0] - 10}px;--g:${GL[i]}"></div><div class="cp" style="left:${T[i][0]}px;width:${T[i][1] - T[i][0]}px">${price(c.price)}</div>
 <div class="pl ${up ? 'u' : 'd'}" style="left:${PL[i][0]}px;width:${PL[i][1] - PL[i][0]}px">${up ? '▲' : '▼'} ${sgn(c.chg)}</div>`; }).join('');
   const fl = v => v < 25 ? 'СИЛЬНЫЙ СТРАХ' : v < 45 ? 'СТРАХ' : v <= 55 ? 'НЕЙТРАЛЬНО' : v <= 75 ? 'ЖАДНОСТЬ' : 'СИЛЬНАЯ ЖАДНОСТЬ';
   const fcol = d.fng.now < 45 ? '#FF4D4F' : d.fng.now > 55 ? '#2FE07A' : '#F3F1EC';
@@ -162,9 +162,9 @@ function dailyOwl(d, slot = 'УТРО') {
 .kv{top:226px;font-family:MS;font-size:76px;font-weight:800;letter-spacing:-2px;line-height:1;text-shadow:0 3px 10px rgba(0,0,0,.65);white-space:nowrap}.kv.dn{color:#FF3B30}.kv.up{color:#2FE07A}
 .cp{top:398px;text-align:center;font-family:MS;font-size:40px;font-weight:800;letter-spacing:-1.5px;white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .pl{top:458px;height:47px;line-height:43px;text-align:center;font-family:MS;font-size:27px;font-weight:800;letter-spacing:-.5px;border-radius:9px;border:2.5px solid;box-sizing:border-box}
-.pl.d{color:#FF4A4A;border-color:#E0302F;background:linear-gradient(180deg,rgba(120,14,16,.78),rgba(70,8,10,.78));box-shadow:0 0 10px rgba(255,50,50,.3),inset 0 0 14px rgba(255,60,60,.25)}.pl.u{color:#3CF58B;border-color:#22B35E;background:linear-gradient(180deg,rgba(14,100,48,.78),rgba(6,58,26,.78));box-shadow:0 0 10px rgba(50,230,120,.28),inset 0 0 14px rgba(70,255,140,.22)}
+.pl.d{color:#FF5A5A;border-color:#E53935;background:linear-gradient(180deg,rgba(150,18,22,.95),rgba(70,6,8,.95));box-shadow:0 0 14px rgba(255,50,50,.45),inset 0 0 12px rgba(255,80,80,.35)}.pl.u{color:#45F590;border-color:#25B864;background:linear-gradient(180deg,rgba(18,120,58,.95),rgba(6,58,26,.95));box-shadow:0 0 14px rgba(50,230,120,.4),inset 0 0 12px rgba(80,255,150,.3)}
 .kn{left:0;top:0}
-.gl{top:330px;height:184px;border-radius:16px;background:radial-gradient(ellipse 70% 60% at 50% 55%,rgba(var(--g),.06),rgba(var(--g),.16) 70%,rgba(var(--g),.28));box-shadow:inset 0 0 26px rgba(var(--g),.55),inset 0 0 60px rgba(var(--g),.18)}
+.gl{top:350px;height:163px;border-radius:0 0 15px 15px;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 38%);background:radial-gradient(ellipse 75% 70% at 50% 50%,rgba(var(--g),.42),rgba(var(--g),.16) 55%,rgba(var(--g),0) 85%),linear-gradient(180deg,rgba(var(--g),0),rgba(var(--g),.22) 70%,rgba(var(--g),.32));mix-blend-mode:screen}
 .gv{left:${cx - 100}px;width:200px;top:${cy - 92}px;text-align:center}.gv b{font-family:MS;font-size:54px;font-weight:800;letter-spacing:-1px;line-height:1}.gv small{font-size:26px;font-weight:800;color:#ddd}
 .gv i{display:block;font-style:normal;font-size:23px;font-weight:900;margin-top:4px}
 .nr{left:797px;width:420px;height:72px;display:flex;align-items:center;font-size:25px;font-weight:500;line-height:1.14;color:#F3F1EC}
