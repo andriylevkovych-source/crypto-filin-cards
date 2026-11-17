@@ -194,13 +194,17 @@ const OKX = 'https://www.okx.com/api/v5/public';
 // Aggregated liquidations across major exchanges via Coinalyze (free API key in COINALYZE_KEY)
 const CZ = 'https://api.coinalyze.net/v1';
 async function czGet(path) {
-  const r = await fetch(CZ + path, { headers: { api_key: process.env.COINALYZE_KEY, Accept: 'application/json' } });
-  if (!r.ok) throw new Error('coinalyze ' + r.status + ' ' + path.split('?')[0]);
-  return r.json();
+  for (let i = 0; i < 4; i++) {
+    const r = await fetch(CZ + path, { headers: { api_key: process.env.COINALYZE_KEY, Accept: 'application/json' } });
+    if (r.status === 429) { const ra = +(r.headers.get('retry-after') || 0); console.log('coinalyze 429, retry-after', ra); await sleep(Math.max(ra, 15) * 1000 + 1000); continue; }
+    if (!r.ok) throw new Error('coinalyze ' + r.status + ' ' + path.split('?')[0]);
+    return r.json();
+  }
+  throw new Error('coinalyze 429 (rate limit) ' + path.split('?')[0]);
 }
 async function liqCoinalyze() {
   const syms = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE'];
-  const [exchanges, markets] = await Promise.all([czGet('/exchanges'), czGet('/future-markets')]);
+  const exchanges = await czGet('/exchanges'); await sleep(1600); const markets = await czGet('/future-markets'); await sleep(1600);
   const major = /binance|bybit|okx|bitget|hyperliquid|gate|deribit|bitmex|coinbase|kraken|htx|huobi/i;
   const exName = Object.fromEntries(exchanges.map(e => [e.code, e.name]));
   const pick = {};
@@ -210,15 +214,15 @@ async function liqCoinalyze() {
     if (!/^(USDT|USD|USDC)$/i.test(m.quote_asset || '')) continue;
     (pick[m.base_asset.toUpperCase()] ||= []).push(m.symbol);
   }
-  const all = Object.entries(pick).flatMap(([b, list]) => list.slice(0, 12).map(sym => [b, sym]));
+  const all = Object.entries(pick).flatMap(([b, list]) => list.slice(0, 6).map(sym => [b, sym]));
   if (!all.length) throw new Error('coinalyze: no markets');
   const to = Math.floor(Date.now() / 1000), from = to - 24 * 3600;
   const bySym = Object.fromEntries(all.map(([b, s]) => [s, b]));
   const hours = Array.from({ length: 24 }, () => ({ long: 0, short: 0 }));
   const rows = Object.fromEntries(syms.map(s => [s, { sym: s, long: 0, short: 0 }]));
   const exUsed = new Set();
-  for (let i = 0; i < all.length; i += 20) {
-    const chunk = all.slice(i, i + 20).map(x => x[1]);
+  for (let i = 0; i < all.length; i += 10) {
+    const chunk = all.slice(i, i + 10).map(x => x[1]);
     const res = await czGet(`/liquidation-history?symbols=${encodeURIComponent(chunk.join(','))}&interval=1hour&from=${from}&to=${to}&convert_to_usd=true`);
     for (const it of res || []) {
       const b = bySym[it.symbol]; if (!b) continue;
@@ -229,7 +233,7 @@ async function liqCoinalyze() {
         exUsed.add(exName[markets.find(m => m.symbol === it.symbol)?.exchange] || '');
       }
     }
-    await sleep(1600);
+    await sleep(3000);
   }
   const R = syms.map(s => rows[s]);
   const total = R.reduce((a, r) => a + r.long + r.short, 0);
