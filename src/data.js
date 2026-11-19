@@ -59,9 +59,16 @@ async function channelHeadlines(hours = 14, max = 3) {
       const first = m[1].split(/<br\s*\/?>/)[0].replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').trim();
       if (!first || /^(☀️|🌙|⏰|🗳|📊 S&P|💥 ЛИКВИДАЦИИ|🏦|⚖️|📅|🧭)/u.test(first) || /ДОБРОЕ УТРО|ИТОГИ ДНЯ|ОПРОС/i.test(first)) continue;
       const clean = first.replace(/^[^\p{L}\p{N}$]+/u, '').trim();
-      out.push({ ts, t: sentenceCase(clean.length > 80 ? clean.slice(0, 78).replace(/\s+\S*$/, '') + '…' : clean) });
+      const low = clean.toLowerCase();
+      let score = 0;
+      if (/bitcoin|btc|биткоин|ethereum|eth\b|эфир|крипт|etf|solana|xrp|stablecoin|стейбл|binance|coinbase|strategy|saylor|сейлор|кит|whale|ликвидац|sec\b|cftc|blackrock|майнер|токен|альткоин/i.test(low)) score += 3;
+      if (/фрс|fed\b|fomc|ставк|инфляц|cpi|pce|ppi|безработ|занятост|nfp|доллар|казначейск|пауэлл|уорш/i.test(low)) score += 2;
+      if (/nasdaq|s&p|доу|акци|нефт|nvidia|золот/i.test(low)) score += 1;
+      if (score === 0 && /трамп|путин|си цзиньпин|\bси\b|иран|израил|украин|росси|войн|танкер|ракет|удар|переговор|санкц|вэнс|министр|президент/i.test(low)) score = -5;
+      if (score < 0) continue;
+      out.push({ ts, score, t: sentenceCase(clean.length > 80 ? clean.slice(0, 78).replace(/\s+\S*$/, '') + '…' : clean) });
     }
-    return out.sort((a, b) => b.ts - a.ts).slice(0, max).map(x => x.t);
+    return out.sort((a, b) => b.score - a.score || b.ts - a.ts).slice(0, max).sort((a, b) => b.ts - a.ts).map(x => x.t);
   } catch { return []; }
 }
 const TOP = ['bitcoin', 'ethereum', 'solana', 'binancecoin', 'ripple'];
