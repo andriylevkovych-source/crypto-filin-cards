@@ -122,7 +122,7 @@ const TITLE_RU = [
 function todaysEvents(cal, dayOffset = 0) {
   const today = kyivDate(new Date(Date.now() + dayOffset * 864e5));
   return (cal || [])
-    .filter(e => e.country === 'USD' && (e.impact === 'High' || e.impact === 'Medium'))
+    .filter(e => e.country === 'USD' && e.impact === 'High' && !/UoM|Consumer Sentiment|Inflation Expectations/i.test(e.title))
     .filter(e => kyivDate(new Date(e.date)) === today)
     .map(e => {
       const ru = TITLE_RU.find(([re]) => re.test(e.title));
