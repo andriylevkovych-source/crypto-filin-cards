@@ -111,11 +111,13 @@ const TITLE_RU = [
   [/Advance GDP|GDP q\/q/i, 'ВВП США'], [/Core Retail Sales/i, 'Базовые розничные продажи'], [/Retail Sales/i, 'Розничные продажи'], [/ISM Manufacturing PMI/i, 'ISM в промышленности'],
   [/ISM Services PMI/i, 'ISM в услугах'], [/JOLTS/i, 'Вакансии JOLTS'], [/Prelim UoM Consumer Sentiment/i, 'Потребдоверие Мичигана'],
   [/Fed Chair .* Speaks/i, 'Выступление главы ФРС'], [/ADP Non-Farm/i, 'Занятость ADP'], [/Treasury Currency Report/i, 'Отчёт Минфина по валютам'],
+  [/Philly Fed/i, 'Индекс ФРБ Филадельфии'], [/Crude Oil Inventories/i, 'Запасы нефти EIA'], [/Warsh Speaks/i, 'Выступление Уорша (ФРС)'],
 ];
+const KEY_EV = /CPI|PPI|Non-Farm|Unemployment|Retail Sales|GDP|PCE|FOMC|Federal Funds|Fed Chair|Warsh|Powell|Philly Fed|Crude Oil Inventories|ISM|JOLTS/i;
 function todaysEvents(cal, dayOffset = 0) {
   const today = kyivDate(new Date(Date.now() + dayOffset * 864e5));
   return (cal || [])
-    .filter(e => e.country === 'USD' && e.impact === 'High' && !/UoM|Consumer Sentiment|Inflation Expectations/i.test(e.title))
+    .filter(e => e.country === 'USD' && !/UoM|Consumer Sentiment|Inflation Expectations/i.test(e.title) && (e.impact === 'High' || KEY_EV.test(e.title)))
     .filter(e => kyivDate(new Date(e.date)) === today)
     .map(e => {
       const ru = TITLE_RU.find(([re]) => re.test(e.title));
