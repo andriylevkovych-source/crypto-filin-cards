@@ -77,6 +77,8 @@ async function daily(slot) {
     Promise.all([getJSON('https://nfs.faireconomy.media/ff_calendar_thisweek.json').catch(() => []), evening ? getJSON('https://nfs.faireconomy.media/ff_calendar_nextweek.json').catch(() => []) : []]).then(([a, b]) => [...(a || []), ...(b || [])]),
     channelHeadlines(evening ? 12 : 14, 5),
   ]);
+  let liq24 = null;
+  try { const L = await liq(); liq24 = { total: Math.round(L.total), long: Math.round(L.long), short: Math.round(L.short), source: L.source }; } catch (e) { console.error('daily liq24 failed:', e.message); }
   const g = glob.data;
   // 7d market-cap & dominance curves approximated from top-100 sparklines (price * circulating supply)
   // use only coins with a complete 7d sparkline so new listings don't create fake jumps
@@ -98,7 +100,7 @@ async function daily(slot) {
     vol: g.total_volume.usd,
     coins: coins.map(c => ({ sym: c.symbol.toUpperCase(), id: c.id, price: c.current_price, chg: c.price_change_percentage_24h, spark: thin(c.sparkline_in_7d.price.slice(-48), 24) })),
     fng: { now: f[0], label: fngLabel(f[0]), yesterday: f[1], week: f[7], month: f[30] },
-    events: todaysEvents(cal, evening ? 1 : 0), eventsTomorrow: evening, news,
+    events: todaysEvents(cal, evening ? 1 : 0), eventsTomorrow: evening, news, liq24,
   };
 }
 
