@@ -56,7 +56,7 @@ async function channelHeadlines(hours = 14, max = 3) {
     while ((m = re.exec(html))) {
       const ts = Date.parse(m[2]);
       if (Date.now() - ts > hours * 3600e3) continue;
-      const first = m[1].split(/<br\s*\/?>/)[0].replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').trim();
+      const first = m[1].split(/<br\s*\/?>/)[0].replace(/<[^>]+>/g, '').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n)).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16))).replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').trim();
       if (!first || /^(☀️|🌙|⏰|🗳|📊 S&P|💥 ЛИКВИДАЦИИ|🏦|⚖️|📅|🧭)/u.test(first) || /ДОБРОЕ УТРО|ИТОГИ ДНЯ|ОПРОС/i.test(first)) continue;
       const clean = first.replace(/^[^\p{L}\p{N}$]+/u, '').trim();
       out.push({ ts, t: sentenceCase(clean.length > 80 ? clean.slice(0, 78).replace(/\s+\S*$/, '') + '…' : clean) });
@@ -111,11 +111,11 @@ const TITLE_RU = [
   [/Unemployment Claims/i, 'Заявки на пособие по безработице'], [/Federal Funds Rate/i, 'Решение ФРС по ставке'],
   [/FOMC Statement/i, 'Заявление FOMC'], [/FOMC Press Conference/i, 'Пресс-конференция ФРС'], [/FOMC Meeting Minutes/i, 'Протокол FOMC'],
   [/Advance GDP|GDP q\/q/i, 'ВВП США'], [/Core Retail Sales/i, 'Базовые розничные продажи'], [/Retail Sales/i, 'Розничные продажи'], [/ISM Manufacturing PMI/i, 'ISM в промышленности'],
-  [/ISM Services PMI/i, 'ISM в услугах'], [/Flash Services PMI/i, 'PMI в сфере услуг (предв.)'], [/Flash Manufacturing PMI/i, 'PMI в производстве (предв.)'], [/JOLTS/i, 'Вакансии JOLTS'], [/Prelim UoM Consumer Sentiment/i, 'Потребдоверие Мичигана'],
+  [/ISM Services PMI/i, 'ISM в услугах'], [/Flash Services PMI/i, 'PMI в сфере услуг (предв.)'], [/Flash Manufacturing PMI/i, 'PMI в производстве (предв.)'], [/JOLTS/i, 'Вакансии JOLTS'], [/Prelim UoM Consumer Sentiment/i, 'Потребдоверие Мичигана'], [/CB Consumer Confidence/i, 'Доверие потребителей CB'],
   [/Fed Chair .* Speaks/i, 'Выступление главы ФРС'], [/ADP Non-Farm/i, 'Занятость ADP'], [/Treasury Currency Report/i, 'Отчёт Минфина по валютам'],
   [/Philly Fed/i, 'Индекс ФРБ Филадельфии'], [/Crude Oil Inventories/i, 'Запасы нефти EIA'], [/Warsh Speaks/i, 'Выступление Уорша (ФРС)'],
 ];
-const KEY_EV = /CPI|PPI|Non-Farm|Unemployment|Retail Sales|GDP|PCE|FOMC Statement|FOMC Press|FOMC Meeting Minutes|Federal Funds|Fed Chair|Warsh|Powell|Philly Fed|Crude Oil Inventories|ISM|PMI|JOLTS/i;
+const KEY_EV = /CPI|PPI|Non-Farm|Unemployment|Retail Sales|GDP|PCE|FOMC Statement|FOMC Press|FOMC Meeting Minutes|Federal Funds|Fed Chair|Warsh|Powell|Philly Fed|Crude Oil Inventories|ISM|PMI|JOLTS|CB Consumer Confidence/i;
 function todaysEvents(cal, dayOffset = 0) {
   const today = kyivDate(new Date(Date.now() + dayOffset * 864e5));
   return (cal || [])
