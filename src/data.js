@@ -135,6 +135,10 @@ function todaysEvents(cal, dayOffset = 0) {
 // ---------- ETF ----------
 async function etf() {
   const d = await getJSON('https://www.tftc.io/bitcoin-etf-flows/latest.json');
+  // stale guard: latest session must be the previous US weekday (ETF data lands the morning after)
+  { const t = new Date(kyivDate(new Date()) + 'T12:00:00Z'); do { t.setUTCDate(t.getUTCDate() - 1); } while ([0, 6].includes(t.getUTCDay()));
+    const expect = t.toISOString().slice(0, 10);
+    if (process.env.ETF_ALLOW_STALE !== '1' && d.latestSession.date < expect) throw new Error(`ETF data stale: ${d.latestSession.date} < ${expect}`); }
   const sessions = [...d.recentSessions].sort((a, b) => a.date.localeCompare(b.date));
   const per = Object.entries(d.latestSession.perEtfUsd || {}).filter(([, v]) => Math.abs(v) >= 1e6)
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 6);
